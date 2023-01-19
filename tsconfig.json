@@ -1,0 +1,21 @@
+{
+    "rootDir": ".", 
+    "compilerOptions": {
+      "target": "es5",
+      "module": "none",
+      "lib": ["dom", "esnext"],  
+      "sourceMap": false,
+      "outFile": "bga-animations.js",
+      "declaration": true,
+    },
+    "files": [
+      "src/framework.d.ts",
+      "src/animations.ts",
+      "src/animations-utils.ts",
+      "src/animations/slide-animation.ts",
+      "src/animations/show-screen-center-animation.ts",
+      "src/animations/cumulated-animations.ts",
+      "src/animation-manager.ts",
+      "src/define.ts"
+    ]
+}

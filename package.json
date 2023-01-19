@@ -1,0 +1,19 @@
+{
+  "name": "bga-animations",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bga-animations.js",
+  "scripts": {
+    "build:ts": "tsc",
+    "build:scss": "sass --no-source-map src/bga-animations.scss bga-animations.css",
+    "doc": "typedoc --out docs --readme none ./src/**.ts ./src/animations/**.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@microsoft/tsdoc": "0.14.2",
+    "typedoc": "^0.23.18",
+    "sass": "^1.32.6",
+    "typescript": "^4.1.3"
+  }
+}
