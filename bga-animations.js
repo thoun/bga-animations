@@ -21,7 +21,11 @@ function getDeltaCoordinates(element, settings) {
     }
     else {
         var originBR = (_a = settings.fromRect) !== null && _a !== void 0 ? _a : settings.fromElement.getBoundingClientRect();
+        // TODO make it an option ?
+        var originalTransform = element.style.transform;
+        element.style.transform = '';
         var destinationBR = element.getBoundingClientRect();
+        element.style.transform = originalTransform;
         x = (destinationBR.left + destinationBR.right) / 2 - (originBR.left + originBR.right) / 2;
         y = (destinationBR.top + destinationBR.bottom) / 2 - (originBR.top + originBR.bottom) / 2;
     }
@@ -30,6 +34,10 @@ function getDeltaCoordinates(element, settings) {
         y /= settings.scale;
     }
     return { x: x, y: y };
+}
+function logAnimation(element, settings) {
+    console.log(element, element.getBoundingClientRect(), element.style.transform, settings);
+    return Promise.resolve(false);
 }
 /**
  * Linear slide of the card from origin to destination.
@@ -129,6 +137,26 @@ function showScreenCenterAnimation(element, settings) {
     return promise;
 }
 /**
+ * Show the element at the center of the screen
+ *
+ * @param element the element to animate
+ * @param settings an `AnimationSettings` object
+ * @returns a promise when animation ends
+ */
+function pauseAnimation(element, settings) {
+    var promise = new Promise(function (success) {
+        var _a;
+        // should be checked at the beginning of every animation
+        if (!shouldAnimate(settings)) {
+            success(false);
+            return promise;
+        }
+        var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
+        setTimeout(function () { return success(true); }, duration);
+    });
+    return promise;
+}
+/**
  * Linear slide of the card from origin to destination.
  *
  * @param element the element to animate. The element should be attached to the destination element before the animation starts.
@@ -193,6 +221,20 @@ var AnimationManager = /** @class */ (function () {
     AnimationManager.prototype.attachWithSlideAnimation = function (element, toElement, settings) {
         return this.attachWithAnimation(element, toElement, slideAnimation, settings);
     };
+    /**
+     * Attach an element to a parent with a slide animation.
+     *
+     * @param card the card informations
+     */
+    AnimationManager.prototype.attachWithShowToScreenAnimation = function (element, toElement, settingsOrSettingsArray) {
+        var _this = this;
+        var cumulatedAnimation = function (element, settings) { return cumulatedAnimations(element, [
+            showScreenCenterAnimation,
+            pauseAnimation,
+            function (element) { return _this.attachWithSlideAnimation(element, toElement); },
+        ], settingsOrSettingsArray); };
+        return this.attachWithAnimation(element, toElement, cumulatedAnimation, null);
+    };
     return AnimationManager;
 }());
 define({
@@ -201,4 +243,7 @@ define({
     getDeltaCoordinates: getDeltaCoordinates,
     // animation functions
     slideAnimation: slideAnimation,
+    showScreenCenterAnimation: showScreenCenterAnimation,
+    pauseAnimation: pauseAnimation,
+    cumulatedAnimations: cumulatedAnimations,
 });

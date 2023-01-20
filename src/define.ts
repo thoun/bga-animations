@@ -7,4 +7,7 @@ define({
 
     // animation functions
     slideAnimation,
+    showScreenCenterAnimation,
+    pauseAnimation,
+    cumulatedAnimations,
  });

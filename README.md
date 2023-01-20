@@ -4,27 +4,16 @@
 [Demo](https://thoun.github.io/bga-animations/demo/index.html)
 
 # Concept
-## CardManager, Stocks and Card
-The CardManager will handle the creation of all animations used in all stocks linked to it.
+## AnimationManager
+The AnimationManager will store the global settings and provide useful animation function.
 
-For example, if you have animations in 3 stocks on your game, you will create 1 manager and 3 stocks.
-
-If you have different decks of animations (animations of different kind, that may have ids in common as they are handled in different DB tables), you will need one manager for each.
-
-When the card is mentionned in the parameters, it can be any type of object. For example `{ id: 3, type: 3, type_arg: 2 }`. It should be possible to identify the card and generate it's unique id by the object, when used in manager/stock parameter, but it isn't necessary to be the exact same object that was used to add the card.
-
-## Card layout
-The card contains a div (card-sides) that contains 2 divs : a front side and a back side.
+You don't have to use it, you can call animations functions directly. [See examples](./EXAMPLES.md)
 
 # Integration
 ## On standard BGA project
-Copy bga-animations.css and bga-animations.js files to the `modules` directory.  
+Copy bga-animations.js file to the `modules` directory.  
 Then you can include the module on your game :
 
-CSS file: 
-```css
-@import url(modules/bga-animations.css);
-```
 JS file:
 ```js
 define([
@@ -37,4 +26,4 @@ define([
 function (dojo, declare, debounce, gamegui, /*...,*/ bgaCards) {
 ```
 
-See [examples](./EXAMPLES.md) to see how to create a stock.
+See [examples](./EXAMPLES.md) to see how to create a manager or call animations functions.

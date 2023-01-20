@@ -11,8 +11,8 @@ function initManager() {
     animationManager = new AnimationManager(game);
 }
 
-function applyToMovedSquares(fn) {
-    for (i=1; i<=4; i++) {
+function applyToMovedSquares(fn, max = 4) {
+    for (i=1; i<=max; i++) {
         const element = document.getElementById(`moved-square-${i}`);
         setTimeout(() => fn(element), 200 * (i - 1));
     } 
@@ -25,23 +25,11 @@ function slideTo(toElement) {
     ));
 }
 
-function slideToScreenCenterThen(toElement) {
-    applyToMovedSquares(element => 
-        cumulatedAnimations(
-            element,
-            [
-                showScreenCenterAnimation,
-                /*(element) => {
-                    element.transform = '';
-                    return Promise.resolve(true);
-                },*/
-                (element) => animationManager.attachWithSlideAnimation(
-                    element,
-                    toElement
-                ),
-            ]
-        )
-    );
+function slideToScreenCenterThen(toElement) {    
+    applyToMovedSquares(element => animationManager.attachWithShowToScreenAnimation(
+        element,
+        toElement
+    ), 1);
 }
 
 function slideToScreenCenter() {

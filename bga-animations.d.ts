@@ -60,6 +60,7 @@ declare function getDeltaCoordinates(element: HTMLElement, settings: AnimationWi
     x: number;
     y: number;
 };
+declare function logAnimation(element: HTMLElement, settings: AnimationSettings): Promise<boolean>;
 /**
  * Linear slide of the card from origin to destination.
  *
@@ -77,13 +78,21 @@ declare function slideAnimation(element: HTMLElement, settings: AnimationWithOri
  */
 declare function showScreenCenterAnimation(element: HTMLElement, settings: AnimationSettings): Promise<boolean>;
 /**
+ * Show the element at the center of the screen
+ *
+ * @param element the element to animate
+ * @param settings an `AnimationSettings` object
+ * @returns a promise when animation ends
+ */
+declare function pauseAnimation(element: HTMLElement, settings: AnimationSettings): Promise<boolean>;
+/**
  * Linear slide of the card from origin to destination.
  *
  * @param element the element to animate. The element should be attached to the destination element before the animation starts.
  * @param settings an `AnimationSettings` object
  * @returns a promise when animation ends
  */
-declare function cumulatedAnimations(element: HTMLElement, animations: AnimationFunction[], settingsOrSettingsArray: AnimationSettings | AnimationSettings[]): Promise<boolean>;
+declare function cumulatedAnimations(element: HTMLElement, animations: AnimationFunction[], settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean>;
 interface AnimationManagerSettings {
     /**
      * The default animation duration, in ms (default: 500).
@@ -114,5 +123,11 @@ declare class AnimationManager {
      * @param card the card informations
      */
     attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithOriginSettings): Promise<boolean>;
+    /**
+     * Attach an element to a parent with a slide animation.
+     *
+     * @param card the card informations
+     */
+    attachWithShowToScreenAnimation(element: HTMLElement, toElement: HTMLElement, settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean>;
 }
 declare const define: any;

@@ -45,4 +45,27 @@ class AnimationManager {
     public attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithOriginSettings): Promise<boolean> {
         return this.attachWithAnimation(element, toElement, slideAnimation, settings);
     }
+
+    /**
+     * Attach an element to a parent with a slide animation.
+     * 
+     * @param card the card informations
+     */
+    public attachWithShowToScreenAnimation(element: HTMLElement, toElement: HTMLElement, settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean> {
+        const cumulatedAnimation: AnimationFunction = (element: HTMLElement, settings: AnimationSettings) => cumulatedAnimations(
+            element,
+            [
+                showScreenCenterAnimation,
+                pauseAnimation,
+                (element) => this.attachWithSlideAnimation(
+                    element,
+                    toElement
+                ),
+            ],
+            settingsOrSettingsArray,
+        );
+
+        return this.attachWithAnimation(element, toElement, cumulatedAnimation, null);
+    }
+
 }

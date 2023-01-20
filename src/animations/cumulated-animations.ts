@@ -5,7 +5,7 @@
  * @param settings an `AnimationSettings` object
  * @returns a promise when animation ends
  */
-function cumulatedAnimations(element: HTMLElement, animations: AnimationFunction[], settingsOrSettingsArray: AnimationSettings | AnimationSettings[]): Promise<boolean> {
+function cumulatedAnimations(element: HTMLElement, animations: AnimationFunction[], settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean> {
     const settings = Array.isArray(settingsOrSettingsArray) ? settingsOrSettingsArray[0] : settingsOrSettingsArray;
     if (!animations.length) {
         throw new Error(`[bga-animation] animations of cumulatedAnimations cannot be empty`);

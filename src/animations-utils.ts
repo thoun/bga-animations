@@ -21,7 +21,12 @@ function getDeltaCoordinates(element: HTMLElement, settings: AnimationWithOrigin
         y = settings.fromDelta.y;
     } else {
         const originBR = settings.fromRect ?? settings.fromElement.getBoundingClientRect();
+
+        // TODO make it an option ?
+        const originalTransform = element.style.transform;
+        element.style.transform = '';
         const destinationBR = element.getBoundingClientRect();
+        element.style.transform = originalTransform;
 
         x = (destinationBR.left + destinationBR.right)/2 - (originBR.left + originBR.right)/2;
         y = (destinationBR.top + destinationBR.bottom)/2 - (originBR.top+ originBR.bottom)/2;
@@ -33,4 +38,9 @@ function getDeltaCoordinates(element: HTMLElement, settings: AnimationWithOrigin
     }
 
     return {x, y};
+}
+
+function logAnimation(element: HTMLElement, settings: AnimationSettings) {
+    console.log(element, element.getBoundingClientRect(), element.style.transform, settings);
+    return Promise.resolve(false);
 }
