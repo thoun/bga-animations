@@ -20,6 +20,11 @@ interface AnimationSettings {
     zIndex?: number;
 
     /**
+     * The transform property to set after the animation.
+     */
+    finalTransform?: string;
+
+    /**
      * A function called when animation starts (for example to add a 'animated' class).
      */
     animationStart?: (element: HTMLElement) => any;
@@ -35,7 +40,7 @@ interface AnimationSettings {
     rotationDelta?: number;
 }
 
-interface AnimationWithOriginSettings extends AnimationSettings {    
+interface AnimationWithOriginSettings extends AnimationSettings {
 
     /**
      * A delta coordinates (object with x and y properties).

@@ -42,3 +42,7 @@ function slideToScreenCenter() {
         )
     );
 }
+
+function slideFromTitle(element) {
+    animationManager.slideFromElement(element, document.getElementById('instantaneousMode'));
+}

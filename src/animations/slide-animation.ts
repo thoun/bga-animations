@@ -46,7 +46,7 @@ function slideAnimation(element: HTMLElement, settings: AnimationWithOriginSetti
         element.offsetHeight;
         element.style.transition = `transform ${duration}ms linear`;
         element.offsetHeight;
-        element.style.transform = null;
+        element.style.transform = settings?.finalTransform ?? null;
         // safety in case transitionend and transitioncancel are not called
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
     });

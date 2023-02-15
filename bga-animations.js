@@ -48,13 +48,13 @@ function logAnimation(element, settings) {
  */
 function slideAnimation(element, settings) {
     var promise = new Promise(function (success) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         // should be checked at the beginning of every animation
         if (!shouldAnimate(settings)) {
             success(false);
             return promise;
         }
-        var _e = getDeltaCoordinates(element, settings), x = _e.x, y = _e.y;
+        var _f = getDeltaCoordinates(element, settings), x = _f.x, y = _f.y;
         var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
         var originalTransition = element.style.transition;
@@ -81,7 +81,7 @@ function slideAnimation(element, settings) {
         element.offsetHeight;
         element.style.transition = "transform ".concat(duration, "ms linear");
         element.offsetHeight;
-        element.style.transform = null;
+        element.style.transform = (_e = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _e !== void 0 ? _e : null;
         // safety in case transitionend and transitioncancel are not called
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
     });
@@ -234,6 +234,18 @@ var AnimationManager = /** @class */ (function () {
             function (element) { return _this.attachWithSlideAnimation(element, toElement); },
         ], settingsOrSettingsArray); };
         return this.attachWithAnimation(element, toElement, cumulatedAnimation, null);
+    };
+    /**
+     * Slide from an element.
+     *
+     * @param element the element to animate
+     * @param fromElement the origin element
+     * @param settings the animation settings
+     * @returns a promise when animation ends
+     */
+    AnimationManager.prototype.slideFromElement = function (element, fromElement, settings) {
+        var _a, _b, _c;
+        return (_c = slideAnimation(element, __assign(__assign({ duration: (_b = (_a = this.settings) === null || _a === void 0 ? void 0 : _a.duration) !== null && _b !== void 0 ? _b : 500 }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromElement: fromElement }))) !== null && _c !== void 0 ? _c : Promise.resolve(false);
     };
     return AnimationManager;
 }());

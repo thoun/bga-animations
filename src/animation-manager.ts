@@ -12,7 +12,7 @@ class AnimationManager {
      * @param game the BGA game class, usually it will be `this`
      * @param settings: a `AnimationManagerSettings` object
      */
-    constructor(public game: Game, private settings: AnimationManagerSettings) {
+    constructor(public game: Game, private settings?: AnimationManagerSettings) {
     }
 
     /**
@@ -66,6 +66,25 @@ class AnimationManager {
         );
 
         return this.attachWithAnimation(element, toElement, cumulatedAnimation, null);
+    }
+
+    /**
+     * Slide from an element.
+     * 
+     * @param element the element to animate
+     * @param fromElement the origin element
+     * @param settings the animation settings
+     * @returns a promise when animation ends
+     */
+    public slideFromElement(element: HTMLElement, fromElement: HTMLElement, settings?: AnimationSettings): Promise<boolean> {
+        return slideAnimation(element, <AnimationWithOriginSettings>{
+            duration: this.settings?.duration ?? 500,
+
+            ...settings ?? {},
+
+            game: this.game,
+            fromElement
+        }) ?? Promise.resolve(false);
     }
 
 }

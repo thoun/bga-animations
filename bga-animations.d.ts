@@ -16,6 +16,10 @@ interface AnimationSettings {
      */
     zIndex?: number;
     /**
+     * The transform property to set after the animation.
+     */
+    finalTransform?: string;
+    /**
      * A function called when animation starts (for example to add a 'animated' class).
      */
     animationStart?: (element: HTMLElement) => any;
@@ -101,12 +105,12 @@ interface AnimationManagerSettings {
 }
 declare class AnimationManager {
     game: Game;
-    private settings;
+    private settings?;
     /**
      * @param game the BGA game class, usually it will be `this`
      * @param settings: a `AnimationManagerSettings` object
      */
-    constructor(game: Game, settings: AnimationManagerSettings);
+    constructor(game: Game, settings?: AnimationManagerSettings);
     /**
      * Attach an element to a parent, then play animation from element's origin to its new position.
      *
@@ -129,5 +133,14 @@ declare class AnimationManager {
      * @param card the card informations
      */
     attachWithShowToScreenAnimation(element: HTMLElement, toElement: HTMLElement, settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean>;
+    /**
+     * Slide from an element.
+     *
+     * @param element the element to animate
+     * @param fromElement the origin element
+     * @param settings the animation settings
+     * @returns a promise when animation ends
+     */
+    slideFromElement(element: HTMLElement, fromElement: HTMLElement, settings?: AnimationSettings): Promise<boolean>;
 }
 declare const define: any;
