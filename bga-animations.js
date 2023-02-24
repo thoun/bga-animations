@@ -208,10 +208,11 @@ var AnimationManager = /** @class */ (function () {
      * @returns a promise when animation ends
      */
     AnimationManager.prototype.attachWithAnimation = function (element, toElement, fn, settings) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         var fromRect = element.getBoundingClientRect();
         toElement.appendChild(element);
-        return (_c = fn(element, __assign(__assign({ duration: (_b = (_a = this.settings) === null || _a === void 0 ? void 0 : _a.duration) !== null && _b !== void 0 ? _b : 500 }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromRect: fromRect }))) !== null && _c !== void 0 ? _c : Promise.resolve(false);
+        (_a = settings === null || settings === void 0 ? void 0 : settings.afterAttach) === null || _a === void 0 ? void 0 : _a.call(settings, element, toElement);
+        return (_d = fn(element, __assign(__assign({ duration: (_c = (_b = this.settings) === null || _b === void 0 ? void 0 : _b.duration) !== null && _c !== void 0 ? _c : 500 }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromRect: fromRect }))) !== null && _d !== void 0 ? _d : Promise.resolve(false);
     };
     /**
      * Attach an element to a parent with a slide animation.

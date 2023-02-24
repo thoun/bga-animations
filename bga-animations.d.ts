@@ -49,6 +49,12 @@ interface AnimationWithOriginSettings extends AnimationSettings {
      */
     fromElement?: HTMLElement;
 }
+interface AnimationWithAttachAndOriginSettings extends AnimationWithOriginSettings {
+    /**
+     * A function called after attaching the element.
+     */
+    afterAttach?: (element: any, toElement: any) => void;
+}
 /**
  * Animation function signature. Will return a promise after animation is ended. True, if animation played, false, if it didn't.
  */
@@ -120,13 +126,13 @@ declare class AnimationManager {
      * @param settings the animation settings
      * @returns a promise when animation ends
      */
-    attachWithAnimation(element: HTMLElement, toElement: HTMLElement, fn: AnimationFunction, settings?: AnimationWithOriginSettings): Promise<boolean>;
+    attachWithAnimation(element: HTMLElement, toElement: HTMLElement, fn: AnimationFunction, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean>;
     /**
      * Attach an element to a parent with a slide animation.
      *
      * @param card the card informations
      */
-    attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithOriginSettings): Promise<boolean>;
+    attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean>;
     /**
      * Attach an element to a parent with a slide animation.
      *

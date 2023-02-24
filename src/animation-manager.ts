@@ -24,9 +24,10 @@ class AnimationManager {
      * @param settings the animation settings
      * @returns a promise when animation ends
      */
-    public attachWithAnimation(element: HTMLElement, toElement: HTMLElement, fn: AnimationFunction, settings?: AnimationWithOriginSettings): Promise<boolean> {
+    public attachWithAnimation(element: HTMLElement, toElement: HTMLElement, fn: AnimationFunction, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean> {
         const fromRect = element.getBoundingClientRect();
         toElement.appendChild(element);
+        settings?.afterAttach?.(element, toElement);
         return fn(element, <AnimationWithOriginSettings>{
             duration: this.settings?.duration ?? 500,
 
@@ -42,7 +43,7 @@ class AnimationManager {
      * 
      * @param card the card informations
      */
-    public attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithOriginSettings): Promise<boolean> {
+    public attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean> {
         return this.attachWithAnimation(element, toElement, slideAnimation, settings);
     }
 

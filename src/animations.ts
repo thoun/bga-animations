@@ -58,6 +58,13 @@ interface AnimationWithOriginSettings extends AnimationSettings {
     fromElement?: HTMLElement;
 }
 
+interface AnimationWithAttachAndOriginSettings extends AnimationWithOriginSettings {
+    /**
+     * A function called after attaching the element.
+     */
+    afterAttach?: (element, toElement) => void;
+}
+
 /**
  * Animation function signature. Will return a promise after animation is ended. True, if animation played, false, if it didn't.
  */
