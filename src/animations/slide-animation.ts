@@ -35,13 +35,23 @@ function slideAnimation(element: HTMLElement, settings: AnimationWithOriginSetti
             success(true);
             element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
             element.removeEventListener('transitionend', cleanOnTransitionEnd);
+            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
         };
 
-        element.addEventListener('transitioncancel', cleanOnTransitionEnd);
+        const cleanOnTransitionCancel = () => {
+            element.style.transition = ``;
+            element.offsetHeight;
+            element.style.transform = settings?.finalTransform ?? null;
+            element.offsetHeight;
+            cleanOnTransitionEnd();
+        }
+
+        element.addEventListener('transitioncancel', cleanOnTransitionCancel);
         element.addEventListener('transitionend', cleanOnTransitionEnd);
+        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
 
         element.offsetHeight;
         element.style.transition = `transform ${duration}ms linear`;

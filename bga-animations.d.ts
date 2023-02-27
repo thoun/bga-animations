@@ -103,15 +103,29 @@ declare function pauseAnimation(element: HTMLElement, settings: AnimationSetting
  * @returns a promise when animation ends
  */
 declare function cumulatedAnimations(element: HTMLElement, animations: AnimationFunction[], settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean>;
+interface IZoomManager {
+    /**
+     * Returns the zoom level
+     */
+    zoom: number;
+}
 interface AnimationManagerSettings {
     /**
      * The default animation duration, in ms (default: 500).
      */
     duration?: number;
+    /**
+     * The zoom manager, providing the current scale.
+     */
+    zoomManager?: IZoomManager;
 }
 declare class AnimationManager {
     game: Game;
     private settings?;
+    /**
+     * The zoom manager, providing the current scale.
+     */
+    private zoomManager?;
     /**
      * @param game the BGA game class, usually it will be `this`
      * @param settings: a `AnimationManagerSettings` object
@@ -148,5 +162,11 @@ declare class AnimationManager {
      * @returns a promise when animation ends
      */
     slideFromElement(element: HTMLElement, fromElement: HTMLElement, settings?: AnimationSettings): Promise<boolean>;
+    /**
+     * Set the zoom manager, to get the scale of the current game.
+     *
+     * @param zoomManager the zoom manager
+     */
+    setZoomManager(zoomManager: IZoomManager): void;
 }
 declare const define: any;

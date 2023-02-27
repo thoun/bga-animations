@@ -1,18 +1,35 @@
+interface IZoomManager {
+    /**
+     * Returns the zoom level
+     */
+    zoom: number;
+}
+
 interface AnimationManagerSettings {
     /**
      * The default animation duration, in ms (default: 500).
      */
     duration?: number;
+
+    /**
+     * The zoom manager, providing the current scale.
+     */
+    zoomManager?: IZoomManager;
 }
 
 
 class AnimationManager {
+    /**
+     * The zoom manager, providing the current scale.
+     */
+    private zoomManager?: IZoomManager;
 
     /**
      * @param game the BGA game class, usually it will be `this`
      * @param settings: a `AnimationManagerSettings` object
      */
     constructor(public game: Game, private settings?: AnimationManagerSettings) {
+        this.zoomManager = settings?.zoomManager;
     }
 
     /**
@@ -30,6 +47,7 @@ class AnimationManager {
         settings?.afterAttach?.(element, toElement);
         return fn(element, <AnimationWithOriginSettings>{
             duration: this.settings?.duration ?? 500,
+            scale: this.zoomManager?.zoom ?? undefined,
 
             ...settings ?? {},
 
@@ -80,12 +98,22 @@ class AnimationManager {
     public slideFromElement(element: HTMLElement, fromElement: HTMLElement, settings?: AnimationSettings): Promise<boolean> {
         return slideAnimation(element, <AnimationWithOriginSettings>{
             duration: this.settings?.duration ?? 500,
+            scale: this.zoomManager?.zoom ?? undefined,
 
             ...settings ?? {},
 
             game: this.game,
             fromElement
         }) ?? Promise.resolve(false);
+    }
+
+    /**
+     * Set the zoom manager, to get the scale of the current game.
+     * 
+     * @param zoomManager the zoom manager
+     */
+    public setZoomManager(zoomManager: IZoomManager): void {
+        this.zoomManager = zoomManager;
     }
 
 }

@@ -72,12 +72,22 @@ function slideAnimation(element, settings) {
             success(true);
             element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
             element.removeEventListener('transitionend', cleanOnTransitionEnd);
+            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
         };
-        element.addEventListener('transitioncancel', cleanOnTransitionEnd);
+        var cleanOnTransitionCancel = function () {
+            var _a;
+            element.style.transition = "";
+            element.offsetHeight;
+            element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
+            element.offsetHeight;
+            cleanOnTransitionEnd();
+        };
+        element.addEventListener('transitioncancel', cleanOnTransitionCancel);
         element.addEventListener('transitionend', cleanOnTransitionEnd);
+        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
         element.offsetHeight;
         element.style.transition = "transform ".concat(duration, "ms linear");
         element.offsetHeight;
@@ -121,12 +131,22 @@ function showScreenCenterAnimation(element, settings) {
             success(true);
             element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
             element.removeEventListener('transitionend', cleanOnTransitionEnd);
+            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
         };
+        var cleanOnTransitionCancel = function () {
+            var _a;
+            element.style.transition = "";
+            element.offsetHeight;
+            element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
+            element.offsetHeight;
+            cleanOnTransitionEnd();
+        };
         element.addEventListener('transitioncancel', cleanOnTransitionEnd);
         element.addEventListener('transitionend', cleanOnTransitionEnd);
+        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
         element.offsetHeight;
         element.style.transition = "transform ".concat(duration, "ms linear");
         element.offsetHeight;
@@ -197,6 +217,7 @@ var AnimationManager = /** @class */ (function () {
     function AnimationManager(game, settings) {
         this.game = game;
         this.settings = settings;
+        this.zoomManager = settings === null || settings === void 0 ? void 0 : settings.zoomManager;
     }
     /**
      * Attach an element to a parent, then play animation from element's origin to its new position.
@@ -208,11 +229,11 @@ var AnimationManager = /** @class */ (function () {
      * @returns a promise when animation ends
      */
     AnimationManager.prototype.attachWithAnimation = function (element, toElement, fn, settings) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         var fromRect = element.getBoundingClientRect();
         toElement.appendChild(element);
         (_a = settings === null || settings === void 0 ? void 0 : settings.afterAttach) === null || _a === void 0 ? void 0 : _a.call(settings, element, toElement);
-        return (_d = fn(element, __assign(__assign({ duration: (_c = (_b = this.settings) === null || _b === void 0 ? void 0 : _b.duration) !== null && _c !== void 0 ? _c : 500 }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromRect: fromRect }))) !== null && _d !== void 0 ? _d : Promise.resolve(false);
+        return (_f = fn(element, __assign(__assign({ duration: (_c = (_b = this.settings) === null || _b === void 0 ? void 0 : _b.duration) !== null && _c !== void 0 ? _c : 500, scale: (_e = (_d = this.zoomManager) === null || _d === void 0 ? void 0 : _d.zoom) !== null && _e !== void 0 ? _e : undefined }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromRect: fromRect }))) !== null && _f !== void 0 ? _f : Promise.resolve(false);
     };
     /**
      * Attach an element to a parent with a slide animation.
@@ -245,8 +266,16 @@ var AnimationManager = /** @class */ (function () {
      * @returns a promise when animation ends
      */
     AnimationManager.prototype.slideFromElement = function (element, fromElement, settings) {
-        var _a, _b, _c;
-        return (_c = slideAnimation(element, __assign(__assign({ duration: (_b = (_a = this.settings) === null || _a === void 0 ? void 0 : _a.duration) !== null && _b !== void 0 ? _b : 500 }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromElement: fromElement }))) !== null && _c !== void 0 ? _c : Promise.resolve(false);
+        var _a, _b, _c, _d, _e;
+        return (_e = slideAnimation(element, __assign(__assign({ duration: (_b = (_a = this.settings) === null || _a === void 0 ? void 0 : _a.duration) !== null && _b !== void 0 ? _b : 500, scale: (_d = (_c = this.zoomManager) === null || _c === void 0 ? void 0 : _c.zoom) !== null && _d !== void 0 ? _d : undefined }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromElement: fromElement }))) !== null && _e !== void 0 ? _e : Promise.resolve(false);
+    };
+    /**
+     * Set the zoom manager, to get the scale of the current game.
+     *
+     * @param zoomManager the zoom manager
+     */
+    AnimationManager.prototype.setZoomManager = function (zoomManager) {
+        this.zoomManager = zoomManager;
     };
     return AnimationManager;
 }());
