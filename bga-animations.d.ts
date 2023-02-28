@@ -162,11 +162,13 @@ declare class AnimationManager {
      * @returns a promise when animation ends
      */
     slideFromElement(element: HTMLElement, fromElement: HTMLElement, settings?: AnimationSettings): Promise<boolean>;
+    getZoomManager(): IZoomManager;
     /**
      * Set the zoom manager, to get the scale of the current game.
      *
      * @param zoomManager the zoom manager
      */
     setZoomManager(zoomManager: IZoomManager): void;
+    getSettings(): AnimationManagerSettings | null | undefined;
 }
 declare const define: any;

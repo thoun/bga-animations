@@ -269,6 +269,9 @@ var AnimationManager = /** @class */ (function () {
         var _a, _b, _c, _d, _e;
         return (_e = slideAnimation(element, __assign(__assign({ duration: (_b = (_a = this.settings) === null || _a === void 0 ? void 0 : _a.duration) !== null && _b !== void 0 ? _b : 500, scale: (_d = (_c = this.zoomManager) === null || _c === void 0 ? void 0 : _c.zoom) !== null && _d !== void 0 ? _d : undefined }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromElement: fromElement }))) !== null && _e !== void 0 ? _e : Promise.resolve(false);
     };
+    AnimationManager.prototype.getZoomManager = function () {
+        return this.zoomManager;
+    };
     /**
      * Set the zoom manager, to get the scale of the current game.
      *
@@ -276,6 +279,9 @@ var AnimationManager = /** @class */ (function () {
      */
     AnimationManager.prototype.setZoomManager = function (zoomManager) {
         this.zoomManager = zoomManager;
+    };
+    AnimationManager.prototype.getSettings = function () {
+        return this.settings;
     };
     return AnimationManager;
 }());

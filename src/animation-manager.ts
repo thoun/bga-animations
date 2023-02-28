@@ -107,6 +107,10 @@ class AnimationManager {
         }) ?? Promise.resolve(false);
     }
 
+    public getZoomManager(): IZoomManager {
+        return this.zoomManager;
+    }
+
     /**
      * Set the zoom manager, to get the scale of the current game.
      * 
@@ -116,4 +120,7 @@ class AnimationManager {
         this.zoomManager = zoomManager;
     }
 
+    public getSettings(): AnimationManagerSettings | null | undefined {
+        return this.settings;
+    }
 }
