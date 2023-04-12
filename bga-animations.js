@@ -98,6 +98,61 @@ function slideAnimation(element, settings) {
     return promise;
 }
 /**
+ * Linear slide of the card from origin to destination.
+ *
+ * @param element the element to animate. The element should be attached to the destination element before the animation starts.
+ * @param settings an `AnimationSettings` object
+ * @returns a promise when animation ends
+ */
+function slideToAnimation(element, settings) {
+    var promise = new Promise(function (success) {
+        var _a, _b, _c, _d, _e;
+        // should be checked at the beginning of every animation
+        if (!shouldAnimate(settings)) {
+            success(false);
+            return promise;
+        }
+        var _f = getDeltaCoordinates(element, settings), x = _f.x, y = _f.y;
+        var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
+        var originalZIndex = element.style.zIndex;
+        var originalTransition = element.style.transition;
+        element.style.zIndex = "".concat((_b = settings === null || settings === void 0 ? void 0 : settings.zIndex) !== null && _b !== void 0 ? _b : 10);
+        (_c = settings === null || settings === void 0 ? void 0 : settings.animationStart) === null || _c === void 0 ? void 0 : _c.call(settings, element);
+        var timeoutId = null;
+        var cleanOnTransitionEnd = function () {
+            var _a;
+            element.style.zIndex = originalZIndex;
+            element.style.transition = originalTransition;
+            (_a = settings === null || settings === void 0 ? void 0 : settings.animationEnd) === null || _a === void 0 ? void 0 : _a.call(settings, element);
+            success(true);
+            element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
+            element.removeEventListener('transitionend', cleanOnTransitionEnd);
+            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+        var cleanOnTransitionCancel = function () {
+            var _a;
+            element.style.transition = "";
+            element.offsetHeight;
+            element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
+            element.offsetHeight;
+            cleanOnTransitionEnd();
+        };
+        element.addEventListener('transitioncancel', cleanOnTransitionEnd);
+        element.addEventListener('transitionend', cleanOnTransitionEnd);
+        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
+        element.offsetHeight;
+        element.style.transition = "transform ".concat(duration, "ms linear");
+        element.offsetHeight;
+        element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg) scale(").concat((_e = settings.scale) !== null && _e !== void 0 ? _e : 1, ")");
+        // safety in case transitionend and transitioncancel are not called
+        timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
+    });
+    return promise;
+}
+/**
  * Show the element at the center of the screen
  *
  * @param element the element to animate

@@ -80,6 +80,14 @@ declare function logAnimation(element: HTMLElement, settings: AnimationSettings)
  */
 declare function slideAnimation(element: HTMLElement, settings: AnimationWithOriginSettings): Promise<boolean>;
 /**
+ * Linear slide of the card from origin to destination.
+ *
+ * @param element the element to animate. The element should be attached to the destination element before the animation starts.
+ * @param settings an `AnimationSettings` object
+ * @returns a promise when animation ends
+ */
+declare function slideToAnimation(element: HTMLElement, settings: AnimationWithOriginSettings): Promise<boolean>;
+/**
  * Show the element at the center of the screen
  *
  * @param element the element to animate

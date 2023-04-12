@@ -13,6 +13,7 @@
       "src/animations.ts",
       "src/animations-utils.ts",
       "src/animations/slide-animation.ts",
+      "src/animations/slide-to-animation.ts",
       "src/animations/show-screen-center-animation.ts",
       "src/animations/pause-animation.ts",
       "src/animations/cumulated-animations.ts",

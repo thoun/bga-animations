@@ -46,3 +46,10 @@ function slideToScreenCenter() {
 function slideFromTitle(element) {
     animationManager.slideFromElement(element, document.getElementById('instantaneousMode'));
 }
+
+function slideToHereThenDelete(toElement) {
+    applyToMovedSquares(element => slideToAnimation(
+        element,
+        { fromElement: toElement, scale: 1, }
+    ).then(() => element.remove()), 1);
+}
