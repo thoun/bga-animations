@@ -3,7 +3,7 @@
  */
 
 interface Game {
-    instantaneousMode: boolean;
+    instantaneousMode?: boolean;
     
     setup: (gamedatas: any) => void;
     onEnteringState: (stateName: string, args: any) => void;
@@ -23,7 +23,15 @@ interface Notif<T> {
     uid: string;
 }
 
-type Gamestate = any; // TODO
+type Gamestate = {
+    active_player?: string;
+    args: any;
+    id: string;
+    name: string;
+    description?: string;
+    descriptionmyturn?: string;
+    private_state?: Gamestate;
+};
 
 interface Player {
     beginner: boolean;
