@@ -149,6 +149,7 @@ declare class AnimationManager {
      * @returns a promise when animation ends
      */
     attachWithAnimation(element: HTMLElement, toElement: HTMLElement, fn: AnimationFunction, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean>;
+    private getAnimation;
     /**
      * Attach an element to a parent with a slide animation.
      *
@@ -178,5 +179,11 @@ declare class AnimationManager {
      */
     setZoomManager(zoomManager: IZoomManager): void;
     getSettings(): AnimationManagerSettings | null | undefined;
+    /**
+     * Returns if the animations are active. Animation aren't active when the window is not visible (`document.visibilityState === 'hidden'`), or `game.instantaneousMode` is true.
+     *
+     * @returns if the animations are active.
+     */
+    animationsActive(): boolean;
 }
 declare const define: any;

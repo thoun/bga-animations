@@ -1,5 +1,5 @@
 function shouldAnimate(settings?: AnimationSettings): boolean {
-    return document.visibilityState !== 'hidden' && !settings?.game?.instantaneousMode;
+    return document.visibilityState !== 'hidden' && !(settings?.game as any)?.instantaneousMode;
 }
 
 /**

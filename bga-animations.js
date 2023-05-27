@@ -273,6 +273,9 @@ var AnimationManager = /** @class */ (function () {
         this.game = game;
         this.settings = settings;
         this.zoomManager = settings === null || settings === void 0 ? void 0 : settings.zoomManager;
+        if (!game) {
+            throw new Error('You must set your game as the first parameter of AnimationManager');
+        }
     }
     /**
      * Attach an element to a parent, then play animation from element's origin to its new position.
@@ -290,12 +293,20 @@ var AnimationManager = /** @class */ (function () {
         (_a = settings === null || settings === void 0 ? void 0 : settings.afterAttach) === null || _a === void 0 ? void 0 : _a.call(settings, element, toElement);
         return (_f = fn(element, __assign(__assign({ duration: (_c = (_b = this.settings) === null || _b === void 0 ? void 0 : _b.duration) !== null && _c !== void 0 ? _c : 500, scale: (_e = (_d = this.zoomManager) === null || _d === void 0 ? void 0 : _d.zoom) !== null && _e !== void 0 ? _e : undefined }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromRect: fromRect }))) !== null && _f !== void 0 ? _f : Promise.resolve(false);
     };
+    AnimationManager.prototype.getAnimation = function (animationFunctionName) {
+        var animation = window[animationFunctionName];
+        if (typeof animation !== 'function') {
+            throw new Error("Animation ".concat(animationFunctionName, " in the tsconfig.json file and cannot be used"));
+        }
+        return;
+    };
     /**
      * Attach an element to a parent with a slide animation.
      *
      * @param card the card informations
      */
     AnimationManager.prototype.attachWithSlideAnimation = function (element, toElement, settings) {
+        var slideAnimation = this.getAnimation('slideAnimation');
         return this.attachWithAnimation(element, toElement, slideAnimation, settings);
     };
     /**
@@ -305,6 +316,9 @@ var AnimationManager = /** @class */ (function () {
      */
     AnimationManager.prototype.attachWithShowToScreenAnimation = function (element, toElement, settingsOrSettingsArray) {
         var _this = this;
+        var cumulatedAnimations = this.getAnimation('cumulatedAnimations');
+        var showScreenCenterAnimation = this.getAnimation('showScreenCenterAnimation');
+        var pauseAnimation = this.getAnimation('pauseAnimation');
         var cumulatedAnimation = function (element, settings) { return cumulatedAnimations(element, [
             showScreenCenterAnimation,
             pauseAnimation,
@@ -322,6 +336,7 @@ var AnimationManager = /** @class */ (function () {
      */
     AnimationManager.prototype.slideFromElement = function (element, fromElement, settings) {
         var _a, _b, _c, _d, _e;
+        var slideAnimation = this.getAnimation('slideAnimation');
         return (_e = slideAnimation(element, __assign(__assign({ duration: (_b = (_a = this.settings) === null || _a === void 0 ? void 0 : _a.duration) !== null && _b !== void 0 ? _b : 500, scale: (_d = (_c = this.zoomManager) === null || _c === void 0 ? void 0 : _c.zoom) !== null && _d !== void 0 ? _d : undefined }, settings !== null && settings !== void 0 ? settings : {}), { game: this.game, fromElement: fromElement }))) !== null && _e !== void 0 ? _e : Promise.resolve(false);
     };
     AnimationManager.prototype.getZoomManager = function () {
@@ -337,6 +352,14 @@ var AnimationManager = /** @class */ (function () {
     };
     AnimationManager.prototype.getSettings = function () {
         return this.settings;
+    };
+    /**
+     * Returns if the animations are active. Animation aren't active when the window is not visible (`document.visibilityState === 'hidden'`), or `game.instantaneousMode` is true.
+     *
+     * @returns if the animations are active.
+     */
+    AnimationManager.prototype.animationsActive = function () {
+        return document.visibilityState !== 'hidden' && !this.game.instantaneousMode;
     };
     return AnimationManager;
 }());

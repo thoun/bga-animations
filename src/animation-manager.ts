@@ -30,6 +30,10 @@ class AnimationManager {
      */
     constructor(public game: Game, private settings?: AnimationManagerSettings) {
         this.zoomManager = settings?.zoomManager;
+
+        if (!game) {
+            throw new Error('You must set your game as the first parameter of AnimationManager');
+        }
     }
 
     /**
@@ -56,12 +60,21 @@ class AnimationManager {
         }) ?? Promise.resolve(false);
     }
 
+    private getAnimation(animationFunctionName: string): AnimationFunction {
+        const animation = window[animationFunctionName];
+        if (typeof animation !== 'function') {
+            throw new Error(`Animation ${animationFunctionName} in the tsconfig.json file and cannot be used`);
+        }
+        return ;
+    }
+
     /**
      * Attach an element to a parent with a slide animation.
      * 
      * @param card the card informations
      */
     public attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean> {
+        const slideAnimation = this.getAnimation('slideAnimation');
         return this.attachWithAnimation(element, toElement, slideAnimation, settings);
     }
 
@@ -71,7 +84,11 @@ class AnimationManager {
      * @param card the card informations
      */
     public attachWithShowToScreenAnimation(element: HTMLElement, toElement: HTMLElement, settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean> {
-        const cumulatedAnimation: AnimationFunction = (element: HTMLElement, settings: AnimationSettings) => cumulatedAnimations(
+        const cumulatedAnimations = this.getAnimation('cumulatedAnimations');
+        const showScreenCenterAnimation = this.getAnimation('showScreenCenterAnimation');
+        const pauseAnimation = this.getAnimation('pauseAnimation');        
+
+        const cumulatedAnimation: AnimationFunction = (element: HTMLElement, settings: AnimationSettings) => (cumulatedAnimations as any)(
             element,
             [
                 showScreenCenterAnimation,
@@ -96,6 +113,8 @@ class AnimationManager {
      * @returns a promise when animation ends
      */
     public slideFromElement(element: HTMLElement, fromElement: HTMLElement, settings?: AnimationSettings): Promise<boolean> {
+        const slideAnimation = this.getAnimation('slideAnimation');
+
         return slideAnimation(element, <AnimationWithOriginSettings>{
             duration: this.settings?.duration ?? 500,
             scale: this.zoomManager?.zoom ?? undefined,
@@ -122,5 +141,14 @@ class AnimationManager {
 
     public getSettings(): AnimationManagerSettings | null | undefined {
         return this.settings;
+    }
+    
+    /**
+     * Returns if the animations are active. Animation aren't active when the window is not visible (`document.visibilityState === 'hidden'`), or `game.instantaneousMode` is true.
+     * 
+     * @returns if the animations are active.
+     */
+    public animationsActive(): boolean {
+        return document.visibilityState !== 'hidden' && !(this.game as any).instantaneousMode;
     }
 }
