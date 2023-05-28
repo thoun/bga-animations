@@ -473,21 +473,26 @@ var AnimationManager = /** @class */ (function () {
      */
     AnimationManager.prototype.playWithDelay = function (animations, delay) {
         return __awaiter(this, void 0, void 0, function () {
-            var promises, _loop_1, i;
+            var promise;
             var _this = this;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        promises = [];
-                        _loop_1 = function (i) {
-                            setTimeout(function () { return promises.push(_this.play(animations[i])); }, i * delay);
-                        };
-                        for (i = 0; i < animations.length; i++) {
-                            _loop_1(i);
-                        }
-                        return [4 /*yield*/, Promise.all(promises)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                }
+                promise = new Promise(function (success) {
+                    var promises = [];
+                    var _loop_1 = function (i) {
+                        setTimeout(function () {
+                            promises.push(_this.play(animations[i]));
+                            if (i == animations.length - 1) {
+                                Promise.all(promises).then(function (result) {
+                                    success(result);
+                                });
+                            }
+                        }, i * delay);
+                    };
+                    for (var i = 0; i < animations.length; i++) {
+                        _loop_1(i);
+                    }
+                });
+                return [2 /*return*/, promise];
             });
         });
     };

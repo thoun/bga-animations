@@ -124,13 +124,21 @@ class AnimationManager {
      * @returns a promise for all animations.
      */
     async playWithDelay(animations: BgaAnimation<BgaAnimationSettings>[], delay: number): Promise<BgaAnimation<BgaAnimationSettings>[]> {
-        let promises: Promise<BgaAnimation<BgaAnimationSettings>>[] = [];
-
-        for (let i=0; i<animations.length; i++) {
-            setTimeout(() => promises.push(this.play(animations[i])), i * delay);
-        }
-        
-        return await Promise.all(promises);
+        const promise = new Promise<BgaAnimation<BgaAnimationSettings>[]>((success) => {
+            let promises: Promise<BgaAnimation<BgaAnimationSettings>>[] = [];
+            for (let i=0; i<animations.length; i++) {
+                setTimeout(() => {
+                    promises.push(this.play(animations[i]));
+                    if (i == animations.length - 1) {
+                        Promise.all(promises).then(result => {
+                            success(result);
+                        });
+                    }
+                }, i * delay);
+            }
+        });
+    
+        return promise;
     }
 
     /**
