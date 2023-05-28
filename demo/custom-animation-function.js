@@ -1,7 +1,9 @@
 
 // example of a custom function.
- function stockSlideWithDoubleLoopAnimation(settings) {
+ function stockSlideWithDoubleLoopAnimation(animationManager, animation) {
     const promise = new Promise((success) => {
+        const element = animation.element;
+        const settings = animation.settings;
 
         const originBR = settings.fromElement.getBoundingClientRect();
         const destinationBR = settings.element.getBoundingClientRect();

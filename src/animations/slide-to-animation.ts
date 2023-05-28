@@ -1,17 +1,14 @@
 /**
- * Linear slide of the card from origin to destination.
+ * Linear slide of the element from origin to destination.
  * 
- * @param element the element to animate. The element should be attached to the destination element before the animation starts. 
- * @param settings an `AnimationSettings` object
+ * @param animationManager the animation manager
+ * @param animation a `BgaAnimation` object
  * @returns a promise when animation ends
  */
-function slideToAnimation(element: HTMLElement, settings: AnimationWithOriginSettings): Promise<boolean> {
-    const promise = new Promise<boolean>((success) => {
-        // should be checked at the beginning of every animation
-        if (!shouldAnimate(settings)) {
-            success(false);
-            return promise;
-        }
+function slideToAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaElementAnimationSettings>): Promise<void> {
+    const promise = new Promise<void>((success) => {
+        const settings = animation.settings;
+        const element = settings.element;
 
         let {x, y} = getDeltaCoordinates(element, settings);
 
@@ -21,15 +18,12 @@ function slideToAnimation(element: HTMLElement, settings: AnimationWithOriginSet
 
         element.style.zIndex = `${settings?.zIndex ?? 10}`;
 
-        settings?.animationStart?.(element);
-
         let timeoutId = null;
 
         const cleanOnTransitionEnd = () => {
             element.style.zIndex = originalZIndex;
             element.style.transition = originalTransition;
-            settings?.animationEnd?.(element);
-            success(true);
+            success();
             element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
             element.removeEventListener('transitionend', cleanOnTransitionEnd);
             document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
@@ -58,4 +52,15 @@ function slideToAnimation(element: HTMLElement, settings: AnimationWithOriginSet
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
     });
     return promise;
+}
+
+class BgaSlideToAnimation<BgaAnimationWithAttachAndOriginSettings> extends BgaAnimation<any> {
+    constructor(
+        settings: BgaAnimationWithAttachAndOriginSettings,
+    ) {
+        super(
+            slideToAnimation,
+            settings,
+        );
+    }
 }

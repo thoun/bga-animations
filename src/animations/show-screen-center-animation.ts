@@ -1,17 +1,14 @@
 /**
  * Show the element at the center of the screen
  * 
- * @param element the element to animate
- * @param settings an `AnimationSettings` object
+ * @param animationManager the animation manager
+ * @param animation a `BgaAnimation` object
  * @returns a promise when animation ends
  */
-function showScreenCenterAnimation(element: HTMLElement, settings: AnimationSettings): Promise<boolean> {
-    const promise = new Promise<boolean>((success) => {
-        // should be checked at the beginning of every animation
-        if (!shouldAnimate(settings)) {
-            success(false);
-            return promise;
-        }
+function showScreenCenterAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaElementAnimationSettings>): Promise<void> {
+    const promise = new Promise<void>((success) => {
+        const settings = animation.settings;
+        const element = settings.element;
 
         const elementBR = element.getBoundingClientRect();
 
@@ -27,15 +24,12 @@ function showScreenCenterAnimation(element: HTMLElement, settings: AnimationSett
 
         element.style.zIndex = `${settings?.zIndex ?? 10}`;
 
-        settings?.animationStart?.(element);
-
         let timeoutId = null;
 
         const cleanOnTransitionEnd = () => {
             element.style.zIndex = originalZIndex;
             element.style.transition = originalTransition;
-            settings?.animationEnd?.(element);
-            success(true);
+            success();
             element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
             element.removeEventListener('transitionend', cleanOnTransitionEnd);
             document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
@@ -65,3 +59,15 @@ function showScreenCenterAnimation(element: HTMLElement, settings: AnimationSett
     });
     return promise;
 }
+
+class BgaShowScreenCenterAnimation<BgaAnimation> extends BgaAnimation<any> {
+    constructor(
+        settings: BgaAnimation,
+    ) {
+        super(
+            showScreenCenterAnimation,
+            settings,
+        );
+    }
+}
+

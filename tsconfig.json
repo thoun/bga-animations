@@ -16,6 +16,7 @@
       "src/animations/slide-to-animation.ts",
       "src/animations/show-screen-center-animation.ts",
       "src/animations/pause-animation.ts",
+      "src/animations/attach-with-animation.ts",
       "src/animations/cumulated-animations.ts",
       "src/animation-manager.ts",
       "src/define.ts"

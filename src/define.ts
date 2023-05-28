@@ -6,8 +6,9 @@ define({
     getDeltaCoordinates,
 
     // animation functions
-    slideAnimation,
-    showScreenCenterAnimation,
-    pauseAnimation,
-    cumulatedAnimations,
+    BgaSlideAnimation,
+    BgaShowScreenCenterAnimation,
+    BgaPauseAnimation,
+    BgaCumulatedAnimation,
+    BgaAttachWithAnimation,
  });

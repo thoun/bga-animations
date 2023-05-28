@@ -1,4 +1,4 @@
-function shouldAnimate(settings?: AnimationSettings): boolean {
+function shouldAnimate(settings?: BgaAnimationSettings): boolean {
     return document.visibilityState !== 'hidden' && !(settings?.game as any)?.instantaneousMode;
 }
 
@@ -8,7 +8,7 @@ function shouldAnimate(settings?: AnimationSettings): boolean {
  * @param settings an `AnimationSettings` object
  * @returns a promise when animation ends
  */
-function getDeltaCoordinates(element: HTMLElement, settings: AnimationWithOriginSettings): {x: number, y: number} {
+function getDeltaCoordinates(element: HTMLElement, settings: BgaAnimationWithOriginSettings): {x: number, y: number} {
     if (!settings.fromDelta && !settings.fromRect && !settings.fromElement) {
         throw new Error(`[bga-animation] fromDelta, fromRect or fromElement need to be set`);
     }
@@ -40,7 +40,7 @@ function getDeltaCoordinates(element: HTMLElement, settings: AnimationWithOrigin
     return {x, y};
 }
 
-function logAnimation(element: HTMLElement, settings: AnimationSettings) {
+function logAnimation(element: HTMLElement, settings: BgaAnimationSettings) {
     console.log(element, element.getBoundingClientRect(), element.style.transform, settings);
     return Promise.resolve(false);
 }

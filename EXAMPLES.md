@@ -1,5 +1,5 @@
 # Code example
-## Example of integration using the manager
+## Example of integration
 
 ```js
 define([
@@ -14,42 +14,23 @@ function (dojo, declare, debounce, gamegui, /*...,*/ bgaAnimations) {
       constructor: function() {
 
         // create the animation manager
-        this.cardsManager = new AnimationManager(this);
+        this.animationManager = new AnimationManager(this);
 
         // ...
       },
 
     moveElement: function(element, toElement) {
-        // move an element to a destination elmeent and attach it
-        animationManager.attachWithSlideAnimation(
-            element,
+        // move an element to a destination. It's only visual, the element is still linked to its parent.
+        animationManager.play(
+            new BgaSlideAnimation({ element }),
+        );
+    },
+
+    attachElementWithSlide: function(element, toElement) {
+        // move an element to a destination element and attach it.
+        animationManager.attachWithAnimation(
+            new BgaSlideAnimation({ element }),
             toElement
         );
-    }
-```
-
-## Example of integration without the manager
-
-```js
-define([
-   "dojo","dojo/_base/declare",
-   "dojo/debounce",
-   "ebg/core/gamegui",
-   /*...,*/
-   g_gamethemeurl + "modules/bga-animations.js",
-],
-function (dojo, declare, debounce, gamegui, /*...,*/ bgaAnimations) {
-   return declare("bgagame.mygame", gamegui, {
-      constructor: function() {
-      },
-
-    showElement: function(element) {
-        // move an element to a destination elmeent and attach it
-        showScreenCenterAnimation(
-            element,
-            {
-                game
-            }
-        )
     }
 ```

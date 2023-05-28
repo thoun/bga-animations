@@ -5,9 +5,7 @@
 
 # Concept
 ## AnimationManager
-The AnimationManager will store the global settings and provide useful animation function.
-
-You don't have to use it, you can call animations functions directly. [See examples](./EXAMPLES.md)
+The AnimationManager will store the global settings and manage all stuff common to all animations
 
 # Integration
 ## On standard BGA project
@@ -26,4 +24,4 @@ define([
 function (dojo, declare, debounce, gamegui, /*...,*/ bgaCards) {
 ```
 
-See [examples](./EXAMPLES.md) to see how to create a manager or call animations functions.
+See [examples](./EXAMPLES.md) to see how to create a manager to call animations functions.

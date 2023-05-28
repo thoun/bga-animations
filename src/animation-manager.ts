@@ -36,96 +36,6 @@ class AnimationManager {
         }
     }
 
-    /**
-     * Attach an element to a parent, then play animation from element's origin to its new position.
-     * 
-     * @param element the element to animate
-     * @param toElement the destination parent
-     * @param fn the animation function
-     * @param settings the animation settings
-     * @returns a promise when animation ends
-     */
-    public attachWithAnimation(element: HTMLElement, toElement: HTMLElement, fn: AnimationFunction, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean> {
-        const fromRect = element.getBoundingClientRect();
-        toElement.appendChild(element);
-        settings?.afterAttach?.(element, toElement);
-        return fn(element, <AnimationWithOriginSettings>{
-            duration: this.settings?.duration ?? 500,
-            scale: this.zoomManager?.zoom ?? undefined,
-
-            ...settings ?? {},
-
-            game: this.game,
-            fromRect
-        }) ?? Promise.resolve(false);
-    }
-
-    private getAnimation(animationFunctionName: string): AnimationFunction {
-        const animation = window[animationFunctionName];
-        if (typeof animation !== 'function') {
-            throw new Error(`Animation ${animationFunctionName} in the tsconfig.json file and cannot be used`);
-        }
-        return ;
-    }
-
-    /**
-     * Attach an element to a parent with a slide animation.
-     * 
-     * @param card the card informations
-     */
-    public attachWithSlideAnimation(element: HTMLElement, toElement: HTMLElement, settings?: AnimationWithAttachAndOriginSettings): Promise<boolean> {
-        const slideAnimation = this.getAnimation('slideAnimation');
-        return this.attachWithAnimation(element, toElement, slideAnimation, settings);
-    }
-
-    /**
-     * Attach an element to a parent with a slide animation.
-     * 
-     * @param card the card informations
-     */
-    public attachWithShowToScreenAnimation(element: HTMLElement, toElement: HTMLElement, settingsOrSettingsArray?: AnimationSettings | AnimationSettings[]): Promise<boolean> {
-        const cumulatedAnimations = this.getAnimation('cumulatedAnimations');
-        const showScreenCenterAnimation = this.getAnimation('showScreenCenterAnimation');
-        const pauseAnimation = this.getAnimation('pauseAnimation');        
-
-        const cumulatedAnimation: AnimationFunction = (element: HTMLElement, settings: AnimationSettings) => (cumulatedAnimations as any)(
-            element,
-            [
-                showScreenCenterAnimation,
-                pauseAnimation,
-                (element) => this.attachWithSlideAnimation(
-                    element,
-                    toElement
-                ),
-            ],
-            settingsOrSettingsArray,
-        );
-
-        return this.attachWithAnimation(element, toElement, cumulatedAnimation, null);
-    }
-
-    /**
-     * Slide from an element.
-     * 
-     * @param element the element to animate
-     * @param fromElement the origin element
-     * @param settings the animation settings
-     * @returns a promise when animation ends
-     */
-    public slideFromElement(element: HTMLElement, fromElement: HTMLElement, settings?: AnimationSettings): Promise<boolean> {
-        const slideAnimation = this.getAnimation('slideAnimation');
-
-        return slideAnimation(element, <AnimationWithOriginSettings>{
-            duration: this.settings?.duration ?? 500,
-            scale: this.zoomManager?.zoom ?? undefined,
-
-            ...settings ?? {},
-
-            game: this.game,
-            fromElement
-        }) ?? Promise.resolve(false);
-    }
-
     public getZoomManager(): IZoomManager {
         return this.zoomManager;
     }
@@ -150,5 +60,91 @@ class AnimationManager {
      */
     public animationsActive(): boolean {
         return document.visibilityState !== 'hidden' && !(this.game as any).instantaneousMode;
+    }
+
+    /**
+     * Plays an animation if the animations are active. Animation aren't active when the window is not visible (`document.visibilityState === 'hidden'`), or `game.instantaneousMode` is true.
+     * 
+     * @param animation the animation to play
+     * @returns the animation promise.
+     */
+    async play(animation: BgaAnimation<BgaAnimationSettings>): Promise<BgaAnimation<BgaAnimationSettings>> {
+        animation.played = this.animationsActive();
+        if (animation.played) {
+            const settings = animation.settings;
+
+            settings.animationStart?.(animation);
+            settings.element?.classList.add(settings.animationClass ?? 'bga-animations_animated');
+
+            animation.settings = {
+                ...animation.settings,
+                duration: this.settings?.duration ?? 500,
+                scale: this.zoomManager?.zoom ?? undefined,
+            }
+            animation.result = await animation.animationFunction(this, animation);
+
+            animation.settings.animationEnd?.(animation);
+            settings.element?.classList.remove(settings.animationClass ?? 'bga-animations_animated');
+        } else {
+            return Promise.resolve(animation);
+        }
+    }
+
+    /**
+     * Plays multiple animations in parallel.
+     * 
+     * @param animations the animations to play
+     * @returns a promise for all animations.
+     */
+    async playParallel(animations: BgaAnimation<BgaAnimationSettings>[]): Promise<BgaAnimation<BgaAnimationSettings>[]> {
+        return Promise.all(animations.map(animation => this.play(animation)));
+    }
+
+    /**
+     * Plays multiple animations in sequence (the second when the first ends, ...).
+     * 
+     * @param animations the animations to play
+     * @returns a promise for all animations.
+     */
+    async playSequence(animations: BgaAnimation<BgaAnimationSettings>[]): Promise<BgaAnimation<BgaAnimationSettings>[]> {
+        if (animations.length) {
+            const result = await this.play(animations[0]);
+            const others = await this.playSequence(animations.slice(1));
+            return [result, ...others];
+        } else {
+            return Promise.resolve([]);
+        }
+    }
+
+    /**
+     * Plays multiple animations with a delay between each animation start.
+     * 
+     * @param animations the animations to play
+     * @param delay the delay (in ms)
+     * @returns a promise for all animations.
+     */
+    async playWithDelay(animations: BgaAnimation<BgaAnimationSettings>[], delay: number): Promise<BgaAnimation<BgaAnimationSettings>[]> {
+        let promises: Promise<BgaAnimation<BgaAnimationSettings>>[] = [];
+
+        for (let i=0; i<animations.length; i++) {
+            setTimeout(() => promises.push(this.play(animations[i])), i * delay);
+        }
+        
+        return await Promise.all(promises);
+    }
+
+    /**
+     * Attach an element to a parent, then play animation from element's origin to its new position.
+     * 
+     * @param animation the animation function
+     * @param attachElement the destination parent
+     * @returns a promise when animation ends
+     */
+    public attachWithAnimation(animation: BgaAnimation<BgaAnimationSettings>, attachElement: HTMLElement): Promise<BgaAnimation<any>> {
+        const attachWithAnimation = new BgaAttachWithAnimation({
+            animation,
+            attachElement
+        });
+        return this.play(attachWithAnimation);
     }
 }

@@ -1,8 +1,5 @@
 let animationManager;
 
-const cardWidth = 100;
-const cardHeight = 150;
-
 let game = {
     instantaneousMode: false,
 };
@@ -19,37 +16,46 @@ function applyToMovedSquares(fn, max = 4) {
 }
 
 function slideTo(toElement) {
-    applyToMovedSquares(element => animationManager.attachWithSlideAnimation(
-        element,
+    applyToMovedSquares(element => animationManager.attachWithAnimation(
+        new BgaSlideAnimation({ element }),
         toElement
     ));
 }
 
 function slideToScreenCenterThen(toElement) {    
-    applyToMovedSquares(element => animationManager.attachWithShowToScreenAnimation(
-        element,
-        toElement
+    applyToMovedSquares(element => animationManager.play(
+        new BgaCumulatedAnimation({ animations: [
+            new BgaShowScreenCenterAnimation({ element }),
+            new BgaPauseAnimation({ element }),
+            new BgaAttachWithAnimation({
+                animation: new BgaSlideAnimation({ element }),
+                attachElement: toElement
+            })
+        ]})
     ), 1);
 }
 
 function slideToScreenCenter() {
-    applyToMovedSquares(element => 
-        showScreenCenterAnimation(
-            element,
-            {
-                game
-            }
-        )
-    );
+    applyToMovedSquares(element => animationManager.attachWithAnimation(
+        new BgaShowScreenCenterAnimation({ element }),
+        toElement
+    ));
 }
 
 function slideFromTitle(element) {
-    animationManager.slideFromElement(element, document.getElementById('instantaneousMode'));
+    animationManager.play(
+        new BgaSlideAnimation({
+            element,
+            fromElement: document.getElementById('instantaneousMode')
+        })
+    );
 }
 
 function slideToHereThenDelete(toElement) {
-    applyToMovedSquares(element => slideToAnimation(
-        element,
-        { fromElement: toElement, scale: 1, }
+    applyToMovedSquares(element => animationManager.play(
+        new BgaSlideAnimation({
+            element,
+            fromElement: toElement, scale: 1
+        })
     ).then(() => element.remove()), 1);
 }

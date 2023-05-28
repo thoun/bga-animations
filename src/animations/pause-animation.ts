@@ -1,21 +1,28 @@
 /**
- * Show the element at the center of the screen
+ * Just does nothing for the duration
  * 
- * @param element the element to animate
- * @param settings an `AnimationSettings` object
+ * @param animationManager the animation manager
+ * @param animation a `BgaAnimation` object
  * @returns a promise when animation ends
  */
-function pauseAnimation(element: HTMLElement, settings: AnimationSettings): Promise<boolean> {
-    const promise = new Promise<boolean>((success) => {
-        // should be checked at the beginning of every animation
-        if (!shouldAnimate(settings)) {
-            success(false);
-            return promise;
-        }
+function pauseAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaAnimationSettings>): Promise<void> {
+    const promise = new Promise<void>((success) => {
+        const settings = animation.settings;
 
         const duration = settings?.duration ?? 500;
         
-        setTimeout(() => success(true), duration);
+        setTimeout(() => success(), duration);
     });
     return promise;
+}
+
+class BgaPauseAnimation<BgaAnimation> extends BgaAnimation<any> {
+    constructor(
+        settings: BgaAnimation,
+    ) {
+        super(
+            pauseAnimation,
+            settings,
+        );
+    }
 }
