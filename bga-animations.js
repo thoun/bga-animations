@@ -4,6 +4,7 @@ var BgaAnimation = /** @class */ (function () {
         this.settings = settings;
         this.played = null;
         this.result = null;
+        this.playWhenNoAnimation = false;
     }
     return BgaAnimation;
 }());
@@ -44,8 +45,15 @@ function getDeltaCoordinates(element, settings) {
     }
     return { x: x, y: y };
 }
-function logAnimation(element, settings) {
-    console.log(element, element.getBoundingClientRect(), element.style.transform, settings);
+function logAnimation(animationManager, animation) {
+    var settings = animation.settings;
+    var element = settings.element;
+    if (element) {
+        console.log(animation, settings, element, element.getBoundingClientRect(), element.style.transform);
+    }
+    else {
+        console.log(animation, settings);
+    }
     return Promise.resolve(false);
 }
 var __extends = (this && this.__extends) || (function () {
@@ -281,7 +289,9 @@ function attachWithAnimation(animationManager, animation) {
 var BgaAttachWithAnimation = /** @class */ (function (_super) {
     __extends(BgaAttachWithAnimation, _super);
     function BgaAttachWithAnimation(settings) {
-        return _super.call(this, attachWithAnimation, settings) || this;
+        var _this = _super.call(this, attachWithAnimation, settings) || this;
+        _this.playWhenNoAnimation = true;
+        return _this;
     }
     return BgaAttachWithAnimation;
 }(BgaAnimation));
@@ -298,7 +308,9 @@ function cumulatedAnimations(animationManager, animation) {
 var BgaCumulatedAnimation = /** @class */ (function (_super) {
     __extends(BgaCumulatedAnimation, _super);
     function BgaCumulatedAnimation(settings) {
-        return _super.call(this, cumulatedAnimations, settings) || this;
+        var _this = _super.call(this, cumulatedAnimations, settings) || this;
+        _this.playWhenNoAnimation = true;
+        return _this;
     }
     return BgaCumulatedAnimation;
 }(BgaAnimation));
@@ -406,7 +418,7 @@ var AnimationManager = /** @class */ (function () {
             return __generator(this, function (_o) {
                 switch (_o.label) {
                     case 0:
-                        animation.played = this.animationsActive();
+                        animation.played = animation.playWhenNoAnimation || this.animationsActive();
                         if (!animation.played) return [3 /*break*/, 2];
                         settings = animation.settings;
                         (_a = settings.animationStart) === null || _a === void 0 ? void 0 : _a.call(settings, animation);

@@ -79,6 +79,8 @@ interface IBgaAnimation<T extends BgaAnimationSettings> {
     settings: T;
     played: boolean | null;
     result: any | null;
+
+    playWhenNoAnimation: boolean;
 }
 
 /**
@@ -89,6 +91,8 @@ type BgaAnimationFunction = (animationManager: AnimationManager, animation: IBga
 class BgaAnimation<T extends BgaAnimationSettings> implements IBgaAnimation<BgaAnimationSettings> {
     public played: boolean | null = null;
     public result: any | null = null;
+
+    public playWhenNoAnimation: boolean = false;
 
     constructor(
         public animationFunction: BgaAnimationFunction,

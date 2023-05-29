@@ -67,6 +67,7 @@ interface IBgaAnimation<T extends BgaAnimationSettings> {
     settings: T;
     played: boolean | null;
     result: any | null;
+    playWhenNoAnimation: boolean;
 }
 /**
  * Animation function signature. Will return a promise after animation is ended. The promise returns the result of the animation, if any
@@ -77,6 +78,7 @@ declare class BgaAnimation<T extends BgaAnimationSettings> implements IBgaAnimat
     settings: T;
     played: boolean | null;
     result: any | null;
+    playWhenNoAnimation: boolean;
     constructor(animationFunction: BgaAnimationFunction, settings: T);
 }
 declare function shouldAnimate(settings?: BgaAnimationSettings): boolean;
@@ -90,7 +92,7 @@ declare function getDeltaCoordinates(element: HTMLElement, settings: BgaAnimatio
     x: number;
     y: number;
 };
-declare function logAnimation(element: HTMLElement, settings: BgaAnimationSettings): Promise<boolean>;
+declare function logAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaCumulatedAnimationsSettings>): Promise<any>;
 /**
  * Linear slide of the element from origin to destination.
  *

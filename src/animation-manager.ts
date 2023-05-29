@@ -69,7 +69,7 @@ class AnimationManager {
      * @returns the animation promise.
      */
     async play(animation: BgaAnimation<BgaAnimationSettings>): Promise<BgaAnimation<BgaAnimationSettings>> {
-        animation.played = this.animationsActive();
+        animation.played = animation.playWhenNoAnimation || this.animationsActive();
         if (animation.played) {
             const settings = animation.settings;
 

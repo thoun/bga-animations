@@ -39,5 +39,6 @@ class BgaAttachWithAnimation<BgaAnimationWithAttachAndOriginSettings> extends Bg
             attachWithAnimation,
             settings,
         );
+        this.playWhenNoAnimation = true;
     }
 }

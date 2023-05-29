@@ -22,5 +22,6 @@ class BgaCumulatedAnimation<BgaCumulatedAnimationsSettings> extends BgaAnimation
             cumulatedAnimations,
             settings,
         );
+        this.playWhenNoAnimation = true;
     }
 }

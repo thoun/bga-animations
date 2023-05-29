@@ -40,7 +40,13 @@ function getDeltaCoordinates(element: HTMLElement, settings: BgaAnimationWithOri
     return {x, y};
 }
 
-function logAnimation(element: HTMLElement, settings: BgaAnimationSettings) {
-    console.log(element, element.getBoundingClientRect(), element.style.transform, settings);
+function logAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaCumulatedAnimationsSettings>): Promise<any> {
+    const settings = animation.settings;
+    const element = settings.element;
+    if (element) {
+        console.log(animation, settings, element, element.getBoundingClientRect(), element.style.transform);
+    } else {
+        console.log(animation, settings);
+    }
     return Promise.resolve(false);
 }
