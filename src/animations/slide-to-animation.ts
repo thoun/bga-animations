@@ -1,5 +1,5 @@
 /**
- * Linear slide of the element from origin to destination.
+ * Slide of the element from destination to origin.
  * 
  * @param animationManager the animation manager
  * @param animation a `BgaAnimation` object
@@ -15,6 +15,7 @@ function slideToAnimation(animationManager: AnimationManager, animation: IBgaAni
         const duration = settings?.duration ?? 500;
         const originalZIndex = element.style.zIndex;
         const originalTransition = element.style.transition;
+        const transitionTimingFunction = settings.transitionTimingFunction ?? 'linear';
 
         element.style.zIndex = `${settings?.zIndex ?? 10}`;
 
@@ -45,7 +46,7 @@ function slideToAnimation(animationManager: AnimationManager, animation: IBgaAni
         document.addEventListener('visibilitychange', cleanOnTransitionCancel);
 
         element.offsetHeight;
-        element.style.transition = `transform ${duration}ms linear`;
+        element.style.transition = `transform ${duration}ms ${transitionTimingFunction}`;
         element.offsetHeight;
         element.style.transform = `translate(${-x}px, ${-y}px) rotate(${settings?.rotationDelta ?? 0}deg) scale(${settings.scale ?? 1})`;
         // safety in case transitionend and transitioncancel are not called

@@ -78,9 +78,9 @@ class AnimationManager {
 
             animation.settings = {
                 ...animation.settings,
-                duration: this.settings?.duration ?? 500,
-                scale: this.zoomManager?.zoom ?? undefined,
-            }
+                duration: animation.settings?.duration ?? this.settings?.duration ?? 500,
+                scale: animation.settings?.scale ?? this.zoomManager?.zoom ?? undefined,
+            };
             animation.result = await animation.animationFunction(this, animation);
 
             animation.settings.animationEnd?.(animation);

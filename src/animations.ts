@@ -15,6 +15,11 @@ interface BgaAnimationSettings {
     duration?: number;
 
     /**
+     * The animation CSS timing function, 'linear', 'ease-in-out' (default: linear).
+     */
+    transitionTimingFunction?: string;
+
+    /**
      * The cumulated scale of the element to animate (default: 1).
      */
     scale?: number;

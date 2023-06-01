@@ -25,10 +25,10 @@ function slideTo(toElement) {
 function slideToScreenCenterThen(toElement) {    
     applyToMovedSquares(element => animationManager.play(
         new BgaCumulatedAnimation({ animations: [
-            new BgaShowScreenCenterAnimation({ element }),
+            new BgaShowScreenCenterAnimation({ element, transitionTimingFunction: 'ease-in', }),
             new BgaPauseAnimation({ element }),
             new BgaAttachWithAnimation({
-                animation: new BgaSlideAnimation({ element }),
+                animation: new BgaSlideAnimation({ element, transitionTimingFunction: 'ease-out' }),
                 attachElement: toElement
             })
         ]})

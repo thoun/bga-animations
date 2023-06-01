@@ -1,5 +1,5 @@
 /**
- * Linear slide of the element from origin to destination.
+ * Slide of the element from origin to destination.
  * 
  * @param animationManager the animation manager
  * @param animation a `BgaAnimation` object
@@ -12,9 +12,10 @@ function slideAnimation(animationManager: AnimationManager, animation: IBgaAnima
 
         let {x, y} = getDeltaCoordinates(element, settings);
 
-        const duration = settings?.duration ?? 500;
+        const duration = settings.duration ?? 500;
         const originalZIndex = element.style.zIndex;
         const originalTransition = element.style.transition;
+        const transitionTimingFunction = settings.transitionTimingFunction ?? 'linear';
 
         element.style.zIndex = `${settings?.zIndex ?? 10}`;
         element.style.transition = null;
@@ -48,7 +49,7 @@ function slideAnimation(animationManager: AnimationManager, animation: IBgaAnima
         document.addEventListener('visibilitychange', cleanOnTransitionCancel);
 
         element.offsetHeight;
-        element.style.transition = `transform ${duration}ms linear`;
+        element.style.transition = `transform ${duration}ms ${transitionTimingFunction}`;
         element.offsetHeight;
         element.style.transform = settings?.finalTransform ?? null;
         // safety in case transitionend and transitioncancel are not called

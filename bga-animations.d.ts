@@ -12,6 +12,10 @@ interface BgaAnimationSettings {
      */
     duration?: number;
     /**
+     * The animation CSS timing function, 'linear', 'ease-in-out' (default: linear).
+     */
+    transitionTimingFunction?: string;
+    /**
      * The cumulated scale of the element to animate (default: 1).
      */
     scale?: number;
@@ -72,7 +76,7 @@ interface IBgaAnimation<T extends BgaAnimationSettings> {
 /**
  * Animation function signature. Will return a promise after animation is ended. The promise returns the result of the animation, if any
  */
-declare type BgaAnimationFunction = (animationManager: AnimationManager, animation: IBgaAnimation<BgaAnimationSettings>) => Promise<any>;
+type BgaAnimationFunction = (animationManager: AnimationManager, animation: IBgaAnimation<BgaAnimationSettings>) => Promise<any>;
 declare class BgaAnimation<T extends BgaAnimationSettings> implements IBgaAnimation<BgaAnimationSettings> {
     animationFunction: BgaAnimationFunction;
     settings: T;
@@ -94,7 +98,7 @@ declare function getDeltaCoordinates(element: HTMLElement, settings: BgaAnimatio
 };
 declare function logAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaCumulatedAnimationsSettings>): Promise<any>;
 /**
- * Linear slide of the element from origin to destination.
+ * Slide of the element from origin to destination.
  *
  * @param animationManager the animation manager
  * @param animation a `BgaAnimation` object
@@ -105,7 +109,7 @@ declare class BgaSlideAnimation<BgaAnimationWithAttachAndOriginSettings> extends
     constructor(settings: BgaAnimationWithAttachAndOriginSettings);
 }
 /**
- * Linear slide of the element from origin to destination.
+ * Slide of the element from destination to origin.
  *
  * @param animationManager the animation manager
  * @param animation a `BgaAnimation` object
