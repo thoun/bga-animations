@@ -77,9 +77,9 @@ class AnimationManager {
             settings.element?.classList.add(settings.animationClass ?? 'bga-animations_animated');
 
             animation.settings = {
-                ...animation.settings,
                 duration: animation.settings?.duration ?? this.settings?.duration ?? 500,
                 scale: animation.settings?.scale ?? this.zoomManager?.zoom ?? undefined,
+                ...animation.settings,
             };
             animation.result = await animation.animationFunction(this, animation);
 
