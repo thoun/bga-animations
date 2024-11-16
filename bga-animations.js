@@ -18,7 +18,7 @@ function shouldAnimate(settings) {
  * @param settings an `AnimationSettings` object
  * @returns a promise when animation ends
  */
-function getDeltaCoordinates(element, settings) {
+function getDeltaCoordinates(element, settings, animationManager) {
     var _a;
     if (!settings.fromDelta && !settings.fromRect && !settings.fromElement) {
         throw new Error("[bga-animation] fromDelta, fromRect or fromElement need to be set");
@@ -30,11 +30,11 @@ function getDeltaCoordinates(element, settings) {
         y = settings.fromDelta.y;
     }
     else {
-        var originBR = (_a = settings.fromRect) !== null && _a !== void 0 ? _a : settings.fromElement.getBoundingClientRect();
+        var originBR = (_a = settings.fromRect) !== null && _a !== void 0 ? _a : animationManager.getBoundingClientRectIgnoreZoom(settings.fromElement);
         // TODO make it an option ?
         var originalTransform = element.style.transform;
         element.style.transform = '';
-        var destinationBR = element.getBoundingClientRect();
+        var destinationBR = animationManager.getBoundingClientRectIgnoreZoom(element);
         element.style.transform = originalTransform;
         x = (destinationBR.left + destinationBR.right) / 2 - (originBR.left + originBR.right) / 2;
         y = (destinationBR.top + destinationBR.bottom) / 2 - (originBR.top + originBR.bottom) / 2;
@@ -49,7 +49,7 @@ function logAnimation(animationManager, animation) {
     var settings = animation.settings;
     var element = settings.element;
     if (element) {
-        console.log(animation, settings, element, element.getBoundingClientRect(), element.style.transform);
+        console.log(animation, settings, element, animationManager.getBoundingClientRectIgnoreZoom(element), element.style.transform);
     }
     else {
         console.log(animation, settings);
@@ -83,7 +83,7 @@ function slideAnimation(animationManager, animation) {
         var _a, _b, _c, _d, _e;
         var settings = animation.settings;
         var element = settings.element;
-        var _f = getDeltaCoordinates(element, settings), x = _f.x, y = _f.y;
+        var _f = getDeltaCoordinates(element, settings, animationManager), x = _f.x, y = _f.y;
         var duration = (_a = settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
         var originalTransition = element.style.transition;
@@ -143,7 +143,7 @@ function slideToAnimation(animationManager, animation) {
         var _a, _b, _c, _d, _e;
         var settings = animation.settings;
         var element = settings.element;
-        var _f = getDeltaCoordinates(element, settings), x = _f.x, y = _f.y;
+        var _f = getDeltaCoordinates(element, settings, animationManager), x = _f.x, y = _f.y;
         var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
         var originalTransition = element.style.transition;
@@ -200,7 +200,7 @@ function showScreenCenterAnimation(animationManager, animation) {
         var _a, _b, _c, _d;
         var settings = animation.settings;
         var element = settings.element;
-        var elementBR = element.getBoundingClientRect();
+        var elementBR = animationManager.getBoundingClientRectIgnoreZoom(element);
         var xCenter = (elementBR.left + elementBR.right) / 2;
         var yCenter = (elementBR.top + elementBR.bottom) / 2;
         var x = xCenter - (window.innerWidth / 2);
@@ -283,7 +283,7 @@ function attachWithAnimation(animationManager, animation) {
     var _a;
     var settings = animation.settings;
     var element = settings.animation.settings.element;
-    var fromRect = element.getBoundingClientRect();
+    var fromRect = animationManager.getBoundingClientRectIgnoreZoom(element);
     settings.animation.settings.fromRect = fromRect;
     settings.attachElement.appendChild(element);
     (_a = settings.afterAttach) === null || _a === void 0 ? void 0 : _a.call(settings, element, settings.attachElement);
@@ -338,8 +338,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
@@ -382,6 +382,12 @@ var AnimationManager = /** @class */ (function () {
         this.game = game;
         this.settings = settings;
         this.zoomManager = settings === null || settings === void 0 ? void 0 : settings.zoomManager;
+        var el = document.createElement("div");
+        el.style.cssText = 'top : -1000px; left: -1000px; zoom: 0.5; width: 100px; height: 100px; position: absolute';
+        document.body.appendChild(el);
+        var calculatedWidth = el.getBoundingClientRect().width;
+        this._boundingRectIgnoresZoom = (calculatedWidth > 75); // Chrome 128+ return 50, Safari 15 return 100
+        document.body.removeChild(el);
         if (!game) {
             throw new Error('You must set your game as the first parameter of AnimationManager');
         }
@@ -415,24 +421,24 @@ var AnimationManager = /** @class */ (function () {
      * @returns the animation promise.
      */
     AnimationManager.prototype.play = function (animation) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
         return __awaiter(this, void 0, void 0, function () {
-            var settings, _r;
+            var settings, _a;
+            var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
             return __generator(this, function (_s) {
                 switch (_s.label) {
                     case 0:
                         animation.played = animation.playWhenNoAnimation || this.animationsActive();
                         if (!animation.played) return [3 /*break*/, 2];
                         settings = animation.settings;
-                        (_a = settings.animationStart) === null || _a === void 0 ? void 0 : _a.call(settings, animation);
-                        (_b = settings.element) === null || _b === void 0 ? void 0 : _b.classList.add((_c = settings.animationClass) !== null && _c !== void 0 ? _c : 'bga-animations_animated');
-                        animation.settings = __assign({ duration: (_g = (_e = (_d = animation.settings) === null || _d === void 0 ? void 0 : _d.duration) !== null && _e !== void 0 ? _e : (_f = this.settings) === null || _f === void 0 ? void 0 : _f.duration) !== null && _g !== void 0 ? _g : 500, scale: (_l = (_j = (_h = animation.settings) === null || _h === void 0 ? void 0 : _h.scale) !== null && _j !== void 0 ? _j : (_k = this.zoomManager) === null || _k === void 0 ? void 0 : _k.zoom) !== null && _l !== void 0 ? _l : undefined }, animation.settings);
-                        _r = animation;
+                        (_b = settings.animationStart) === null || _b === void 0 ? void 0 : _b.call(settings, animation);
+                        (_c = settings.element) === null || _c === void 0 ? void 0 : _c.classList.add((_d = settings.animationClass) !== null && _d !== void 0 ? _d : 'bga-animations_animated');
+                        animation.settings = __assign({ duration: (_h = (_f = (_e = animation.settings) === null || _e === void 0 ? void 0 : _e.duration) !== null && _f !== void 0 ? _f : (_g = this.settings) === null || _g === void 0 ? void 0 : _g.duration) !== null && _h !== void 0 ? _h : 500, scale: (_m = (_k = (_j = animation.settings) === null || _j === void 0 ? void 0 : _j.scale) !== null && _k !== void 0 ? _k : (_l = this.zoomManager) === null || _l === void 0 ? void 0 : _l.zoom) !== null && _m !== void 0 ? _m : undefined }, animation.settings);
+                        _a = animation;
                         return [4 /*yield*/, animation.animationFunction(this, animation)];
                     case 1:
-                        _r.result = _s.sent();
-                        (_o = (_m = animation.settings).animationEnd) === null || _o === void 0 ? void 0 : _o.call(_m, animation);
-                        (_p = settings.element) === null || _p === void 0 ? void 0 : _p.classList.remove((_q = settings.animationClass) !== null && _q !== void 0 ? _q : 'bga-animations_animated');
+                        _a.result = _s.sent();
+                        (_p = (_o = animation.settings).animationEnd) === null || _p === void 0 ? void 0 : _p.call(_o, animation);
+                        (_q = settings.element) === null || _q === void 0 ? void 0 : _q.classList.remove((_r = settings.animationClass) !== null && _r !== void 0 ? _r : 'bga-animations_animated');
                         return [3 /*break*/, 3];
                     case 2: return [2 /*return*/, Promise.resolve(animation)];
                     case 3: return [2 /*return*/];
@@ -524,6 +530,36 @@ var AnimationManager = /** @class */ (function () {
             attachElement: attachElement
         });
         return this.play(attachWithAnimation);
+    };
+    /** Returns the getBoundingClientRect ignoring the possible zoom factor linked to the autoscale.
+    * Same behaviour as getBoundingClientRect/dojo.position for old browser, but the result is different for browser using the new CSS property norm (Chrome 128+, Firefox mobile)
+    *
+    * @param {*} obj element or id of element
+    * @returns the bounding client rect full size
+    */
+    AnimationManager.prototype.getBoundingClientRectIgnoreZoom = function (element) {
+        var rect = element.getBoundingClientRect();
+        if (this._boundingRectIgnoresZoom)
+            return rect;
+        var zoomCorr = this.calcCurrentCSSZoom(element);
+        rect.x /= zoomCorr;
+        rect.y /= zoomCorr;
+        rect.width /= zoomCorr;
+        rect.height /= zoomCorr;
+        return rect;
+    };
+    AnimationManager.prototype.calcCurrentCSSZoom = function (node) {
+        if (typeof node.currentCSSZoom !== "undefined")
+            return node.currentCSSZoom;
+        var zoom = 1.0;
+        var zoomStr = window.getComputedStyle(node).getPropertyValue("zoom");
+        if (zoomStr != "") {
+            zoom = parseFloat(zoomStr);
+        }
+        var parent = node.parentElement;
+        if (parent)
+            zoom = zoom * this.calcCurrentCSSZoom(parent);
+        return zoom;
     };
     return AnimationManager;
 }());

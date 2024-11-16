@@ -92,7 +92,7 @@ declare function shouldAnimate(settings?: BgaAnimationSettings): boolean;
  * @param settings an `AnimationSettings` object
  * @returns a promise when animation ends
  */
-declare function getDeltaCoordinates(element: HTMLElement, settings: BgaAnimationWithOriginSettings): {
+declare function getDeltaCoordinates(element: HTMLElement, settings: BgaAnimationWithOriginSettings, animationManager: AnimationManager): {
     x: number;
     y: number;
 };
@@ -200,6 +200,7 @@ declare class AnimationManager {
      * The zoom manager, providing the current scale.
      */
     private zoomManager?;
+    private _boundingRectIgnoresZoom;
     /**
      * @param game the BGA game class, usually it will be `this`
      * @param settings: a `AnimationManagerSettings` object
@@ -256,5 +257,13 @@ declare class AnimationManager {
      * @returns a promise when animation ends
      */
     attachWithAnimation(animation: BgaAnimation<BgaAnimationSettings>, attachElement: HTMLElement): Promise<BgaAnimation<any>>;
+    /** Returns the getBoundingClientRect ignoring the possible zoom factor linked to the autoscale.
+    * Same behaviour as getBoundingClientRect/dojo.position for old browser, but the result is different for browser using the new CSS property norm (Chrome 128+, Firefox mobile)
+    *
+    * @param {*} obj element or id of element
+    * @returns the bounding client rect full size
+    */
+    getBoundingClientRectIgnoreZoom(element: HTMLElement): DOMRect;
+    private calcCurrentCSSZoom;
 }
 declare const define: any;
