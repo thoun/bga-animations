@@ -10,7 +10,7 @@ function slideAnimation(animationManager: AnimationManager, animation: IBgaAnima
         const settings = animation.settings;
         const element = settings.element;
 
-        let {x, y} = getDeltaCoordinates(element, settings);
+        let {x, y} = getDeltaCoordinates(element, settings, animationManager);
 
         const duration = settings.duration ?? 500;
         const originalZIndex = element.style.zIndex;

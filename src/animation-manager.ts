@@ -23,6 +23,7 @@ class AnimationManager {
      * The zoom manager, providing the current scale.
      */
     private zoomManager?: IZoomManager;
+    private _boundingRectIgnoresZoom;
 
     /**
      * @param game the BGA game class, usually it will be `this`
@@ -30,6 +31,13 @@ class AnimationManager {
      */
     constructor(public game: Game, private settings?: AnimationManagerSettings) {
         this.zoomManager = settings?.zoomManager;
+
+        const el = document.createElement("div");
+        el.style.cssText = 'top : -1000px; left: -1000px; zoom: 0.5; width: 100px; height: 100px; position: absolute';
+        document.body.appendChild(el);
+        const calculatedWidth = el.getBoundingClientRect().width;
+        this._boundingRectIgnoresZoom = (calculatedWidth > 75); // Chrome 128+ return 50, Safari 15 return 100
+        document.body.removeChild(el);
 
         if (!game) {
             throw new Error('You must set your game as the first parameter of AnimationManager');
@@ -155,4 +163,38 @@ class AnimationManager {
         });
         return this.play(attachWithAnimation);
     }
+
+    /** Returns the getBoundingClientRect ignoring the possible zoom factor linked to the autoscale.
+    * Same behaviour as getBoundingClientRect/dojo.position for old browser, but the result is different for browser using the new CSS property norm (Chrome 128+, Firefox mobile)
+    * 
+    * @param {*} obj element or id of element
+    * @returns the bounding client rect full size
+    */
+    public getBoundingClientRectIgnoreZoom(element: HTMLElement) : DOMRect {
+        var rect = element.getBoundingClientRect();
+        if (this._boundingRectIgnoresZoom)
+            return rect;
+        var zoomCorr = this.calcCurrentCSSZoom(element);
+        rect.x /= zoomCorr;
+        rect.y /= zoomCorr;
+        rect.width /= zoomCorr;
+        rect.height /= zoomCorr;
+        return rect;
+    }
+
+    private calcCurrentCSSZoom(node){
+        if (typeof node.currentCSSZoom !== "undefined")
+            return node.currentCSSZoom;
+        let zoom = 1.0;
+        var zoomStr = window.getComputedStyle(node).getPropertyValue("zoom");
+
+        if (zoomStr != "") {
+            zoom = parseFloat(zoomStr);
+        }
+        const parent = node.parentElement; 
+        if (parent)
+            zoom = zoom * this.calcCurrentCSSZoom(parent);
+            return zoom;
+    }
+
 }
