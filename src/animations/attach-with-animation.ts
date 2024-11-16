@@ -23,7 +23,7 @@ function attachWithAnimation(animationManager: AnimationManager, animation: IBga
     const settings = animation.settings as BgaAttachWithAnimationSettings;
     const element = settings.animation.settings.element;
 
-    const fromRect = element.getBoundingClientRect();
+    const fromRect = animationManager.getBoundingClientRectIgnoreZoom(element);
     settings.animation.settings.fromRect = fromRect;
     settings.attachElement.appendChild(element);
     settings.afterAttach?.(element, settings.attachElement);

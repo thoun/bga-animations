@@ -10,13 +10,13 @@ function showScreenCenterAnimation(animationManager: AnimationManager, animation
         const settings = animation.settings;
         const element = settings.element;
 
-        const elementBR = element.getBoundingClientRect();
+        const elementBR = animationManager.getBoundingClientRectIgnoreZoom(element);
 
         const xCenter = (elementBR.left + elementBR.right)/2;
         const yCenter = (elementBR.top + elementBR.bottom)/2;
 
-        const x = xCenter - (window.innerWidth / 2);
-        const y = yCenter - (window.innerHeight / 2);
+        const x = xCenter - (window.innerWidth / 2 / animationManager.calcCurrentCSSZoom(document.body));
+        const y = yCenter - (window.innerHeight / 2 / animationManager.calcCurrentCSSZoom(document.body)));
 
         const duration = settings?.duration ?? 500;
         const originalZIndex = element.style.zIndex;
