@@ -18,7 +18,7 @@ function shouldAnimate(settings) {
  * @param settings an `AnimationSettings` object
  * @returns a promise when animation ends
  */
-function getDeltaCoordinates(element, settings) {
+function getDeltaCoordinates(element, settings, animationManager) {
     var _a;
     if (!settings.fromDelta && !settings.fromRect && !settings.fromElement) {
         throw new Error("[bga-animation] fromDelta, fromRect or fromElement need to be set");
@@ -30,11 +30,11 @@ function getDeltaCoordinates(element, settings) {
         y = settings.fromDelta.y;
     }
     else {
-        var originBR = (_a = settings.fromRect) !== null && _a !== void 0 ? _a : settings.fromElement.getBoundingClientRect();
+        var originBR = (_a = settings.fromRect) !== null && _a !== void 0 ? _a : animationManager.game.getBoundingClientRectIgnoreZoom(settings.fromElement);
         // TODO make it an option ?
         var originalTransform = element.style.transform;
         element.style.transform = '';
-        var destinationBR = element.getBoundingClientRect();
+        var destinationBR = animationManager.game.getBoundingClientRectIgnoreZoom(element);
         element.style.transform = originalTransform;
         x = (destinationBR.left + destinationBR.right) / 2 - (originBR.left + originBR.right) / 2;
         y = (destinationBR.top + destinationBR.bottom) / 2 - (originBR.top + originBR.bottom) / 2;
@@ -49,7 +49,7 @@ function logAnimation(animationManager, animation) {
     var settings = animation.settings;
     var element = settings.element;
     if (element) {
-        console.log(animation, settings, element, element.getBoundingClientRect(), element.style.transform);
+        console.log(animation, settings, element, element.getBoundingClientRect(), animationManager.game.getBoundingClientRectIgnoreZoom(element), element.style.transform);
     }
     else {
         console.log(animation, settings);
@@ -83,7 +83,7 @@ function slideAnimation(animationManager, animation) {
         var _a, _b, _c, _d, _e;
         var settings = animation.settings;
         var element = settings.element;
-        var _f = getDeltaCoordinates(element, settings), x = _f.x, y = _f.y;
+        var _f = getDeltaCoordinates(element, settings, animationManager), x = _f.x, y = _f.y;
         var duration = (_a = settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
         var originalTransition = element.style.transition;
@@ -143,7 +143,7 @@ function slideToAnimation(animationManager, animation) {
         var _a, _b, _c, _d, _e;
         var settings = animation.settings;
         var element = settings.element;
-        var _f = getDeltaCoordinates(element, settings), x = _f.x, y = _f.y;
+        var _f = getDeltaCoordinates(element, settings, animationManager), x = _f.x, y = _f.y;
         var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
         var originalTransition = element.style.transition;
@@ -200,7 +200,7 @@ function showScreenCenterAnimation(animationManager, animation) {
         var _a, _b, _c, _d;
         var settings = animation.settings;
         var element = settings.element;
-        var elementBR = element.getBoundingClientRect();
+        var elementBR = animationManager.game.getBoundingClientRectIgnoreZoom(element);
         var xCenter = (elementBR.left + elementBR.right) / 2;
         var yCenter = (elementBR.top + elementBR.bottom) / 2;
         var x = xCenter - (window.innerWidth / 2);
@@ -283,7 +283,7 @@ function attachWithAnimation(animationManager, animation) {
     var _a;
     var settings = animation.settings;
     var element = settings.animation.settings.element;
-    var fromRect = element.getBoundingClientRect();
+    var fromRect = animationManager.game.getBoundingClientRectIgnoreZoom(element);
     settings.animation.settings.fromRect = fromRect;
     settings.attachElement.appendChild(element);
     (_a = settings.afterAttach) === null || _a === void 0 ? void 0 : _a.call(settings, element, settings.attachElement);

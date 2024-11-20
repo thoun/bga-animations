@@ -10,7 +10,7 @@ function showScreenCenterAnimation(animationManager: AnimationManager, animation
         const settings = animation.settings;
         const element = settings.element;
 
-        const elementBR = element.getBoundingClientRect();
+        const elementBR = animationManager.game.getBoundingClientRectIgnoreZoom(element);
 
         const xCenter = (elementBR.left + elementBR.right)/2;
         const yCenter = (elementBR.top + elementBR.bottom)/2;
