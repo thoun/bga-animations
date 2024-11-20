@@ -1,11 +1,32 @@
+let zoomManager;
 let animationManager;
+const FAKE_MOBILE_ZOOM = 0.75;
 
 let game = {
     instantaneousMode: false,
+
+    getBoundingClientRectIgnoreZoom: (element) => {
+        var rect = element.getBoundingClientRect();
+        var zoomCorr = FAKE_MOBILE_ZOOM;
+        rect.x /= zoomCorr;
+        rect.y /= zoomCorr;
+        rect.width /= zoomCorr;
+        rect.height /= zoomCorr;
+        return rect;
+    }
 };
 
 function initManager() {
-    animationManager = new AnimationManager(game);
+    document.getElementById('game_area_wrap').style.zoom = `${FAKE_MOBILE_ZOOM}`;
+
+    zoomManager = new ZoomManager({
+        element: document.getElementById('game-table'),
+        localStorageZoomKey: 'bga-animations-demo',
+    });
+
+    animationManager = new AnimationManager(game, {
+        zoomManager
+    });
 }
 
 function applyToMovedSquares(fn, max = 4) {
