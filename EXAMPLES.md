@@ -22,8 +22,7 @@ function (dojo, declare, debounce, gamegui, /*...,*/ bgaAnimations) {
     moveElement: function(element, toElement) {
         // move an element to a destination. It's only visual, the element is still linked to its parent.
         this.animationManager.play(
-            new BgaSlideAnimation({ element }),
-            toElement
+            new BgaSlideAnimation({ element })
         );
     },
 
