@@ -41,9 +41,7 @@ function showScreenCenterAnimation(animationManager: AnimationManager, animation
 
         const cleanOnTransitionCancel = () => {
             element.style.transition = ``;
-            element.offsetHeight;
             element.style.transform = settings?.finalTransform ?? null;
-            element.offsetHeight;
             cleanOnTransitionEnd();
         }
 
@@ -51,9 +49,7 @@ function showScreenCenterAnimation(animationManager: AnimationManager, animation
         element.addEventListener('transitionend', cleanOnTransitionEnd);
         document.addEventListener('visibilitychange', cleanOnTransitionCancel);
 
-        element.offsetHeight;
         element.style.transition = `transform ${duration}ms ${transitionTimingFunction}`;
-        element.offsetHeight;
         element.style.transform = `translate(${-x}px, ${-y}px) rotate(${settings?.rotationDelta ?? 0}deg)`;
         // safety in case transitionend and transitioncancel are not called
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);

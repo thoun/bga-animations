@@ -19,7 +19,6 @@ function slideAnimation(animationManager: AnimationManager, animation: IBgaAnima
 
         element.style.zIndex = `${settings?.zIndex ?? 10}`;
         element.style.transition = null;
-        element.offsetHeight;
         element.style.transform = `translate(${-x}px, ${-y}px) rotate(${settings?.rotationDelta ?? 0}deg)`;
 
         let timeoutId = null;
@@ -38,9 +37,7 @@ function slideAnimation(animationManager: AnimationManager, animation: IBgaAnima
 
         const cleanOnTransitionCancel = () => {
             element.style.transition = ``;
-            element.offsetHeight;
             element.style.transform = settings?.finalTransform ?? null;
-            element.offsetHeight;
             cleanOnTransitionEnd();
         }
 
@@ -48,9 +45,7 @@ function slideAnimation(animationManager: AnimationManager, animation: IBgaAnima
         element.addEventListener('transitionend', cleanOnTransitionEnd);
         document.addEventListener('visibilitychange', cleanOnTransitionCancel);
 
-        element.offsetHeight;
         element.style.transition = `transform ${duration}ms ${transitionTimingFunction}`;
-        element.offsetHeight;
         element.style.transform = settings?.finalTransform ?? null;
         // safety in case transitionend and transitioncancel are not called
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
