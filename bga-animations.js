@@ -90,7 +90,6 @@ function slideAnimation(animationManager, animation) {
         var transitionTimingFunction = (_b = settings.transitionTimingFunction) !== null && _b !== void 0 ? _b : 'linear';
         element.style.zIndex = "".concat((_c = settings === null || settings === void 0 ? void 0 : settings.zIndex) !== null && _c !== void 0 ? _c : 10);
         element.style.transition = null;
-        element.offsetHeight;
         element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg)");
         var timeoutId = null;
         var cleanOnTransitionEnd = function () {
@@ -107,17 +106,13 @@ function slideAnimation(animationManager, animation) {
         var cleanOnTransitionCancel = function () {
             var _a;
             element.style.transition = "";
-            element.offsetHeight;
             element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
-            element.offsetHeight;
             cleanOnTransitionEnd();
         };
         element.addEventListener('transitioncancel', cleanOnTransitionCancel);
         element.addEventListener('transitionend', cleanOnTransitionEnd);
         document.addEventListener('visibilitychange', cleanOnTransitionCancel);
-        element.offsetHeight;
         element.style.transition = "transform ".concat(duration, "ms ").concat(transitionTimingFunction);
-        element.offsetHeight;
         element.style.transform = (_e = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _e !== void 0 ? _e : null;
         // safety in case transitionend and transitioncancel are not called
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
@@ -164,17 +159,13 @@ function slideToAnimation(animationManager, animation) {
         var cleanOnTransitionCancel = function () {
             var _a;
             element.style.transition = "";
-            element.offsetHeight;
             element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
-            element.offsetHeight;
             cleanOnTransitionEnd();
         };
         element.addEventListener('transitioncancel', cleanOnTransitionEnd);
         element.addEventListener('transitionend', cleanOnTransitionEnd);
         document.addEventListener('visibilitychange', cleanOnTransitionCancel);
-        element.offsetHeight;
         element.style.transition = "transform ".concat(duration, "ms ").concat(transitionTimingFunction);
-        element.offsetHeight;
         element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg) scale(").concat((_e = settings.scale) !== null && _e !== void 0 ? _e : 1, ")");
         // safety in case transitionend and transitioncancel are not called
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
@@ -225,17 +216,13 @@ function showScreenCenterAnimation(animationManager, animation) {
         var cleanOnTransitionCancel = function () {
             var _a;
             element.style.transition = "";
-            element.offsetHeight;
             element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
-            element.offsetHeight;
             cleanOnTransitionEnd();
         };
         element.addEventListener('transitioncancel', cleanOnTransitionEnd);
         element.addEventListener('transitionend', cleanOnTransitionEnd);
         document.addEventListener('visibilitychange', cleanOnTransitionCancel);
-        element.offsetHeight;
         element.style.transition = "transform ".concat(duration, "ms ").concat(transitionTimingFunction);
-        element.offsetHeight;
         element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg)");
         // safety in case transitionend and transitioncancel are not called
         timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
