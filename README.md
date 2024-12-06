@@ -9,7 +9,7 @@ The AnimationManager will store the global settings and manage all stuff common 
 
 # Integration
 ## On standard BGA project
-Copy bga-animations.js file to the `modules` directory.  
+Copy bga-animations.js file to the `modules` directory.
 Then you can include the module on your game :
 
 JS file:
@@ -21,7 +21,7 @@ define([
    /*...,*/
    g_gamethemeurl + "modules/bga-animations.js",
 ],
-function (dojo, declare, debounce, gamegui, /*...,*/ bgaCards) {
+function (dojo, declare, debounce, gamegui, /*...,*/ bgaAnimations) {
 ```
 
 See [examples](./EXAMPLES.md) to see how to create a manager to call animations functions.
