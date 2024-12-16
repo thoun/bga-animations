@@ -200,6 +200,7 @@ declare class AnimationManager {
      * The zoom manager, providing the current scale.
      */
     private zoomManager?;
+    private runningAnimations;
     /**
      * @param game the BGA game class, usually it will be `this`
      * @param settings: a `AnimationManagerSettings` object

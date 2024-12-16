@@ -24,6 +24,8 @@ class AnimationManager {
      */
     private zoomManager?: IZoomManager;
 
+    private runningAnimations: Animation[] = [];
+
     /**
      * @param game the BGA game class, usually it will be `this`
      * @param settings: a `AnimationManagerSettings` object
@@ -34,6 +36,9 @@ class AnimationManager {
         if (!game) {
             throw new Error('You must set your game as the first parameter of AnimationManager');
         }
+        
+        // if the player comes from or to hidden tab, no need to finish animation
+        document.addEventListener('visibilitychange', () => this.runningAnimations.forEach(runningAnimation => runningAnimation?.finish()));
     }
 
     public getZoomManager(): IZoomManager {
@@ -81,7 +86,21 @@ class AnimationManager {
                 scale: animation.settings?.scale ?? this.zoomManager?.zoom ?? undefined,
                 ...animation.settings,
             };
-            animation.result = await animation.animationFunction(this, animation);
+
+            const promise = animation.animationFunction(this, animation);
+            const elementAnimation = (promise as any).elementAnimation;
+            if (elementAnimation) {
+                this.runningAnimations.push(elementAnimation);
+            }
+
+            animation.result = await promise;
+
+            if (elementAnimation) {
+                const indexOf = this.runningAnimations.indexOf((promise as any).elementAnimation);
+                if (indexOf !== -1) {
+                    this.runningAnimations.splice(indexOf, 1);
+                }
+            }
 
             animation.settings.animationEnd?.(animation);
             settings.element?.classList.remove(settings.animationClass ?? 'bga-animations_animated');

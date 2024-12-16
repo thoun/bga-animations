@@ -79,6 +79,7 @@ var __extends = (this && this.__extends) || (function () {
  * @returns a promise when animation ends
  */
 function slideAnimation(animationManager, animation) {
+    var elementAnimation = null;
     var promise = new Promise(function (success) {
         var _a, _b, _c, _d, _e;
         var settings = animation.settings;
@@ -86,42 +87,22 @@ function slideAnimation(animationManager, animation) {
         var _f = getDeltaCoordinates(element, settings, animationManager), x = _f.x, y = _f.y;
         var duration = (_a = settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
-        var originalTransition = element.style.transition;
         var transitionTimingFunction = (_b = settings.transitionTimingFunction) !== null && _b !== void 0 ? _b : 'linear';
         element.style.zIndex = "".concat((_c = settings === null || settings === void 0 ? void 0 : settings.zIndex) !== null && _c !== void 0 ? _c : 10);
-        element.style.transition = null;
-        element.offsetHeight;
-        element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg)");
-        var timeoutId = null;
-        var cleanOnTransitionEnd = function () {
+        elementAnimation = element.animate([
+            { transform: "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg)") },
+            { transform: (_e = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _e !== void 0 ? _e : '' },
+        ], {
+            duration: duration,
+            iterations: 1,
+            easing: transitionTimingFunction,
+        });
+        elementAnimation.finished.then(function () {
             element.style.zIndex = originalZIndex;
-            element.style.transition = originalTransition;
             success();
-            element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
-            element.removeEventListener('transitionend', cleanOnTransitionEnd);
-            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        };
-        var cleanOnTransitionCancel = function () {
-            var _a;
-            element.style.transition = "";
-            element.offsetHeight;
-            element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
-            element.offsetHeight;
-            cleanOnTransitionEnd();
-        };
-        element.addEventListener('transitioncancel', cleanOnTransitionCancel);
-        element.addEventListener('transitionend', cleanOnTransitionEnd);
-        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
-        element.offsetHeight;
-        element.style.transition = "transform ".concat(duration, "ms ").concat(transitionTimingFunction);
-        element.offsetHeight;
-        element.style.transform = (_e = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _e !== void 0 ? _e : null;
-        // safety in case transitionend and transitioncancel are not called
-        timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
+        });
     });
+    promise.elementAnimation = elementAnimation;
     return promise;
 }
 var BgaSlideAnimation = /** @class */ (function (_super) {
@@ -139,46 +120,30 @@ var BgaSlideAnimation = /** @class */ (function (_super) {
  * @returns a promise when animation ends
  */
 function slideToAnimation(animationManager, animation) {
+    var elementAnimation = null;
     var promise = new Promise(function (success) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         var settings = animation.settings;
         var element = settings.element;
-        var _f = getDeltaCoordinates(element, settings, animationManager), x = _f.x, y = _f.y;
-        var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
+        var _g = getDeltaCoordinates(element, settings, animationManager), x = _g.x, y = _g.y;
+        var duration = (_a = settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
-        var originalTransition = element.style.transition;
         var transitionTimingFunction = (_b = settings.transitionTimingFunction) !== null && _b !== void 0 ? _b : 'linear';
         element.style.zIndex = "".concat((_c = settings === null || settings === void 0 ? void 0 : settings.zIndex) !== null && _c !== void 0 ? _c : 10);
-        var timeoutId = null;
-        var cleanOnTransitionEnd = function () {
+        elementAnimation = element.animate([
+            { transform: (_d = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _d !== void 0 ? _d : '' },
+            { transform: "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_e = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _e !== void 0 ? _e : 0, "deg) scale(").concat((_f = settings.scale) !== null && _f !== void 0 ? _f : 1, ")") },
+        ], {
+            duration: duration,
+            iterations: 1,
+            easing: transitionTimingFunction,
+        });
+        elementAnimation.finished.then(function () {
             element.style.zIndex = originalZIndex;
-            element.style.transition = originalTransition;
             success();
-            element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
-            element.removeEventListener('transitionend', cleanOnTransitionEnd);
-            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        };
-        var cleanOnTransitionCancel = function () {
-            var _a;
-            element.style.transition = "";
-            element.offsetHeight;
-            element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
-            element.offsetHeight;
-            cleanOnTransitionEnd();
-        };
-        element.addEventListener('transitioncancel', cleanOnTransitionEnd);
-        element.addEventListener('transitionend', cleanOnTransitionEnd);
-        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
-        element.offsetHeight;
-        element.style.transition = "transform ".concat(duration, "ms ").concat(transitionTimingFunction);
-        element.offsetHeight;
-        element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg) scale(").concat((_e = settings.scale) !== null && _e !== void 0 ? _e : 1, ")");
-        // safety in case transitionend and transitioncancel are not called
-        timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
+        });
     });
+    promise.elementAnimation = elementAnimation;
     return promise;
 }
 var BgaSlideToAnimation = /** @class */ (function (_super) {
@@ -196,8 +161,9 @@ var BgaSlideToAnimation = /** @class */ (function (_super) {
  * @returns a promise when animation ends
  */
 function showScreenCenterAnimation(animationManager, animation) {
+    var elementAnimation = null;
     var promise = new Promise(function (success) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         var settings = animation.settings;
         var element = settings.element;
         var elementBR = animationManager.game.getBoundingClientRectIgnoreZoom(element);
@@ -207,39 +173,24 @@ function showScreenCenterAnimation(animationManager, animation) {
         var y = yCenter - (window.innerHeight / 2);
         var duration = (_a = settings === null || settings === void 0 ? void 0 : settings.duration) !== null && _a !== void 0 ? _a : 500;
         var originalZIndex = element.style.zIndex;
-        var originalTransition = element.style.transition;
         var transitionTimingFunction = (_b = settings.transitionTimingFunction) !== null && _b !== void 0 ? _b : 'linear';
         element.style.zIndex = "".concat((_c = settings === null || settings === void 0 ? void 0 : settings.zIndex) !== null && _c !== void 0 ? _c : 10);
-        var timeoutId = null;
-        var cleanOnTransitionEnd = function () {
+        var finalTransform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg)");
+        elementAnimation = element.animate([
+            { transform: (_e = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _e !== void 0 ? _e : '' },
+            { transform: finalTransform },
+        ], {
+            duration: duration,
+            iterations: 1,
+            easing: transitionTimingFunction,
+        });
+        elementAnimation.finished.then(function () {
             element.style.zIndex = originalZIndex;
-            element.style.transition = originalTransition;
+            element.style.transform = finalTransform;
             success();
-            element.removeEventListener('transitioncancel', cleanOnTransitionEnd);
-            element.removeEventListener('transitionend', cleanOnTransitionEnd);
-            document.removeEventListener('visibilitychange', cleanOnTransitionEnd);
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        };
-        var cleanOnTransitionCancel = function () {
-            var _a;
-            element.style.transition = "";
-            element.offsetHeight;
-            element.style.transform = (_a = settings === null || settings === void 0 ? void 0 : settings.finalTransform) !== null && _a !== void 0 ? _a : null;
-            element.offsetHeight;
-            cleanOnTransitionEnd();
-        };
-        element.addEventListener('transitioncancel', cleanOnTransitionEnd);
-        element.addEventListener('transitionend', cleanOnTransitionEnd);
-        document.addEventListener('visibilitychange', cleanOnTransitionCancel);
-        element.offsetHeight;
-        element.style.transition = "transform ".concat(duration, "ms ").concat(transitionTimingFunction);
-        element.offsetHeight;
-        element.style.transform = "translate(".concat(-x, "px, ").concat(-y, "px) rotate(").concat((_d = settings === null || settings === void 0 ? void 0 : settings.rotationDelta) !== null && _d !== void 0 ? _d : 0, "deg)");
-        // safety in case transitionend and transitioncancel are not called
-        timeoutId = setTimeout(cleanOnTransitionEnd, duration + 100);
+        });
     });
+    promise.elementAnimation = elementAnimation;
     return promise;
 }
 var BgaShowScreenCenterAnimation = /** @class */ (function (_super) {
@@ -379,12 +330,16 @@ var AnimationManager = /** @class */ (function () {
      * @param settings: a `AnimationManagerSettings` object
      */
     function AnimationManager(game, settings) {
+        var _this = this;
         this.game = game;
         this.settings = settings;
+        this.runningAnimations = [];
         this.zoomManager = settings === null || settings === void 0 ? void 0 : settings.zoomManager;
         if (!game) {
             throw new Error('You must set your game as the first parameter of AnimationManager');
         }
+        // if the player comes from or to hidden tab, no need to finish animation
+        document.addEventListener('visibilitychange', function () { return _this.runningAnimations.forEach(function (runningAnimation) { return runningAnimation === null || runningAnimation === void 0 ? void 0 : runningAnimation.finish(); }); });
     }
     AnimationManager.prototype.getZoomManager = function () {
         return this.zoomManager;
@@ -417,7 +372,7 @@ var AnimationManager = /** @class */ (function () {
     AnimationManager.prototype.play = function (animation) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
         return __awaiter(this, void 0, void 0, function () {
-            var settings, _r;
+            var settings, promise, elementAnimation, _r, indexOf;
             return __generator(this, function (_s) {
                 switch (_s.label) {
                     case 0:
@@ -427,10 +382,21 @@ var AnimationManager = /** @class */ (function () {
                         (_a = settings.animationStart) === null || _a === void 0 ? void 0 : _a.call(settings, animation);
                         (_b = settings.element) === null || _b === void 0 ? void 0 : _b.classList.add((_c = settings.animationClass) !== null && _c !== void 0 ? _c : 'bga-animations_animated');
                         animation.settings = __assign({ duration: (_g = (_e = (_d = animation.settings) === null || _d === void 0 ? void 0 : _d.duration) !== null && _e !== void 0 ? _e : (_f = this.settings) === null || _f === void 0 ? void 0 : _f.duration) !== null && _g !== void 0 ? _g : 500, scale: (_l = (_j = (_h = animation.settings) === null || _h === void 0 ? void 0 : _h.scale) !== null && _j !== void 0 ? _j : (_k = this.zoomManager) === null || _k === void 0 ? void 0 : _k.zoom) !== null && _l !== void 0 ? _l : undefined }, animation.settings);
+                        promise = animation.animationFunction(this, animation);
+                        elementAnimation = promise.elementAnimation;
+                        if (elementAnimation) {
+                            this.runningAnimations.push(elementAnimation);
+                        }
                         _r = animation;
-                        return [4 /*yield*/, animation.animationFunction(this, animation)];
+                        return [4 /*yield*/, promise];
                     case 1:
                         _r.result = _s.sent();
+                        if (elementAnimation) {
+                            indexOf = this.runningAnimations.indexOf(promise.elementAnimation);
+                            if (indexOf !== -1) {
+                                this.runningAnimations.splice(indexOf, 1);
+                            }
+                        }
                         (_o = (_m = animation.settings).animationEnd) === null || _o === void 0 ? void 0 : _o.call(_m, animation);
                         (_p = settings.element) === null || _p === void 0 ? void 0 : _p.classList.remove((_q = settings.animationClass) !== null && _q !== void 0 ? _q : 'bga-animations_animated');
                         return [3 /*break*/, 3];
