@@ -10,15 +10,8 @@
     },
     "files": [
       "src/framework.d.ts",
-      "src/animations.ts",
-      "src/animations-utils.ts",
-      "src/animations/slide-animation.ts",
-      "src/animations/slide-to-animation.ts",
-      "src/animations/show-screen-center-animation.ts",
-      "src/animations/pause-animation.ts",
-      "src/animations/attach-with-animation.ts",
-      "src/animations/cumulated-animations.ts",
-      "src/animation-manager.ts",
-      "src/define.ts"
+      "src/animation.d.ts",
+      "src/base-animation-manager.ts",
+      "src/animation-manager.ts"
     ]
 }

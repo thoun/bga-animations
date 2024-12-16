@@ -1,260 +1,133 @@
-interface BgaAnimationSettings {
+declare class BaseAnimationManager {
+    private animationSurface;
+    constructor();
     /**
-     * The element to animate.
+     * Create the animation surface, an unselectable div starting at the top of the screen where the animated element will be attached.
      */
-    element?: HTMLElement;
+    private createAnimationSurface;
     /**
-     * The game class. Used to know if the game is in instantaneous mode (replay) becausewe don't want animations in this case.
+     * Get the translate X & Y for the element, from the top of the page.
      */
-    game?: Game;
+    private getTopPageOffset;
     /**
-     * The animation duration, in ms (default: 500).
+     * Get rotation & scale matrix for an element, relative to the parent.
      */
-    duration?: number;
+    private getRotationAndScaleMatrixForElement;
     /**
-     * The animation CSS timing function, 'linear', 'ease-in-out' (default: linear).
+     * Get rotation & scale matrix for an element, relative to the top of the page.
      */
-    transitionTimingFunction?: string;
+    getRotationAndScaleMatrix(element: HTMLElement, includeSelf?: boolean): DOMMatrix;
     /**
-     * The cumulated scale of the element to animate (default: 1).
+     * Get translation, rotation & scale matrix for an element, relative to the top of the page.
      */
-    scale?: number;
+    getFullMatrix(element: HTMLElement): DOMMatrix;
     /**
-     * The class to add to the animated element.
+     * Remove the scale part of a matrix.
      */
-    animationClass?: string;
+    removeScaleFromMatrix(matrix: DOMMatrix): DOMMatrix;
     /**
-     * A function called when animation starts (for example to add a zoom effect on a card during a reveal animation).
+     * Remove the rotation part of a matrix.
      */
-    animationStart?: (animation: IBgaAnimation<BgaAnimationSettings>) => any;
+    removeRotationFromMatrix(matrix: DOMMatrix): DOMMatrix;
     /**
-     * A function called when animation ends.
+     * Remove the translation part of a matrix.
      */
-    animationEnd?: (animation: IBgaAnimation<BgaAnimationSettings>) => any;
-}
-interface BgaElementAnimationSettings extends BgaAnimationSettings {
+    removeTranslationFromMatrix(matrix: DOMMatrix): DOMMatrix;
     /**
-     * The element to animate.
+     * Get the matrix of an element, to place it at the center of a parent element.
      */
-    element: HTMLElement;
+    getFullMatrixFromElementCenter(element: HTMLElement, parentElement: HTMLElement, ignoreScale?: boolean, ignoreRotation?: boolean): DOMMatrix;
     /**
-     * The zIndex to apply during animation (default: 10).
+     * Create a temp div of the same size as the element.
      */
-    zIndex?: number;
+    createFillingSpace(elem: HTMLElement): HTMLElement;
     /**
-     * The transform property to set after the animation.
+     * Make an empty space grow or shrink to replace where a moved object was or will be.
+     * Ignore the animation settings, prefer addAnimatedSpaceIfNecessary.
      */
-    finalTransform?: string;
+    addAnimatedSpace(element: HTMLElement, parent: HTMLElement, type: 'grow' | 'shrink', animationSettings: AnimationSettings, insertBefore?: Element): Promise<AnimationResult>;
     /**
-     * If the card is rotated at the start of animation.
+     * Make an empty space grow or shrink to replace where a moved object was or will be.
+     * Only if the animation settings says so.
      */
-    rotationDelta?: number;
-}
-interface BgaAnimationWithOriginSettings extends BgaElementAnimationSettings {
+    addAnimatedSpaceIfNecessary(element: HTMLElement, parent: HTMLElement, type: 'grow' | 'shrink', animationSettings: AnimationSettings, insertBefore?: Element): Promise<AnimationResult>;
     /**
-     * A delta coordinates (object with x and y properties).
+     * Returns the average of 2 matrixes.
      */
-    fromDelta?: {
-        x: number;
-        y: number;
-    };
+    private averageDOMMatrix;
     /**
-     * An initial Rect position. Can be the moved object BoundingClientRect itself, before being attached.
+     * Add a wrapper around an element, and add the elment on that wrapper.
+     * Needed before doing animations on the surface
      */
-    fromRect?: DOMRect;
+    wrapOnAnimationSurface(element: HTMLElement): HTMLElement;
     /**
-     * The element to move the card from.
+     * Add a wrapper layer.
+     * Needed before doing sub-animations without messing to the animation on the main wrapper
      */
-    fromElement?: HTMLElement;
-}
-interface IBgaAnimation<T extends BgaAnimationSettings> {
-    settings: T;
-    played: boolean | null;
-    result: any | null;
-    playWhenNoAnimation: boolean;
-}
-/**
- * Animation function signature. Will return a promise after animation is ended. The promise returns the result of the animation, if any
- */
-type BgaAnimationFunction = (animationManager: AnimationManager, animation: IBgaAnimation<BgaAnimationSettings>) => Promise<any>;
-declare class BgaAnimation<T extends BgaAnimationSettings> implements IBgaAnimation<BgaAnimationSettings> {
-    animationFunction: BgaAnimationFunction;
-    settings: T;
-    played: boolean | null;
-    result: any | null;
-    playWhenNoAnimation: boolean;
-    constructor(animationFunction: BgaAnimationFunction, settings: T);
-}
-declare function shouldAnimate(settings?: BgaAnimationSettings): boolean;
-/**
- * Return the x and y delta, based on the animation settings;
- *
- * @param settings an `AnimationSettings` object
- * @returns a promise when animation ends
- */
-declare function getDeltaCoordinates(element: HTMLElement, settings: BgaAnimationWithOriginSettings, animationManager: AnimationManager): {
-    x: number;
-    y: number;
-};
-declare function logAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaCumulatedAnimationsSettings>): Promise<any>;
-/**
- * Slide of the element from origin to destination.
- *
- * @param animationManager the animation manager
- * @param animation a `BgaAnimation` object
- * @returns a promise when animation ends
- */
-declare function slideAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaElementAnimationSettings>): Promise<void>;
-declare class BgaSlideAnimation<BgaAnimationWithAttachAndOriginSettings> extends BgaAnimation<any> {
-    constructor(settings: BgaAnimationWithAttachAndOriginSettings);
-}
-/**
- * Slide of the element from destination to origin.
- *
- * @param animationManager the animation manager
- * @param animation a `BgaAnimation` object
- * @returns a promise when animation ends
- */
-declare function slideToAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaElementAnimationSettings>): Promise<void>;
-declare class BgaSlideToAnimation<BgaAnimationWithAttachAndOriginSettings> extends BgaAnimation<any> {
-    constructor(settings: BgaAnimationWithAttachAndOriginSettings);
-}
-/**
- * Show the element at the center of the screen
- *
- * @param animationManager the animation manager
- * @param animation a `BgaAnimation` object
- * @returns a promise when animation ends
- */
-declare function showScreenCenterAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaElementAnimationSettings>): Promise<void>;
-declare class BgaShowScreenCenterAnimation<BgaAnimation> extends BgaAnimation<any> {
-    constructor(settings: BgaAnimation);
-}
-/**
- * Just does nothing for the duration
- *
- * @param animationManager the animation manager
- * @param animation a `BgaAnimation` object
- * @returns a promise when animation ends
- */
-declare function pauseAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaAnimationSettings>): Promise<void>;
-declare class BgaPauseAnimation<BgaAnimation> extends BgaAnimation<any> {
-    constructor(settings: BgaAnimation);
-}
-interface BgaAttachWithAnimationSettings extends BgaElementAnimationSettings {
-    animation: BgaAnimation<BgaAnimationWithOriginSettings>;
+    addWrapperLayer(baseWrapper: HTMLElement): HTMLElement;
     /**
-     * The target to attach the element to.
+     * Find the animated element in a possibly multi-layer wrapper.
      */
-    attachElement: HTMLElement;
+    private getElementInWrapper;
     /**
-     * A function called after attaching the element.
+     * Creates a bump animation, that simulates a piece being lifted from one place to another.
      */
-    afterAttach?: (element: HTMLElement, attachElement: HTMLElement) => void;
-}
-/**
- * Just use playSequence from animationManager
- *
- * @param animationManager the animation manager
- * @param animation a `BgaAnimation` object
- * @returns a promise when animation ends
- */
-declare function attachWithAnimation(animationManager: AnimationManager, animation: IBgaAnimation<BgaAttachWithAnimationSettings>): Promise<any>;
-declare class BgaAttachWithAnimation<BgaAnimationWithAttachAndOriginSettings> extends BgaAnimation<any> {
-    constructor(settings: BgaAnimationWithAttachAndOriginSettings);
-}
-interface BgaCumulatedAnimationsSettings extends BgaAnimationSettings {
-    animations: IBgaAnimation<BgaAnimationSettings>[];
-}
-/**
- * Just use playSequence from animationManager
- *
- * @param animationManager the animation manager
- * @param animation a `BgaAnimation` object
- * @returns a promise when animation ends
- */
-declare function cumulatedAnimations(animationManager: AnimationManager, animation: IBgaAnimation<BgaCumulatedAnimationsSettings>): Promise<any>;
-declare class BgaCumulatedAnimation<BgaCumulatedAnimationsSettings> extends BgaAnimation<any> {
-    constructor(settings: BgaCumulatedAnimationsSettings);
-}
-interface IZoomManager {
+    createBumpAnimation(bump: number | null | undefined): ParallelAnimation | null;
     /**
-     * Returns the zoom level
+     * Creates a fade animation, 'in' for appearing and 'out' for disappearing.
      */
-    zoom: number;
-}
-interface AnimationManagerSettings {
+    createFadeAnimation(type: 'in' | 'out'): ParallelAnimation;
     /**
-     * The default animation duration, in ms (default: 500).
+     * Animate an object on the animation surface, from a matrix to a matrix.
      */
-    duration?: number;
+    animateOnAnimationSurface(animationWrapper: HTMLElement, fromMatrix: DOMMatrix, toMatrix: DOMMatrix, animationSettings: AnimationSettings): Promise<SurfaceAnimationResult>;
     /**
-     * The zoom manager, providing the current scale.
+     * Attach an element to a new parent.
      */
-    zoomManager?: IZoomManager;
+    attachToElement(element: HTMLElement, toElement: HTMLElement, insertBefore?: Element): void;
 }
 declare class AnimationManager {
     game: Game;
-    private settings?;
-    /**
-     * The zoom manager, providing the current scale.
-     */
-    private zoomManager?;
+    private base;
+    private animationSettings;
     /**
      * @param game the BGA game class, usually it will be `this`
-     * @param settings: a `AnimationManagerSettings` object
+     * @param animationSettings: a `AnimationManagerSettings` object
      */
-    constructor(game: Game, settings?: AnimationManagerSettings);
-    getZoomManager(): IZoomManager;
+    constructor(game: Game, animationSettings?: AnimationManagerSettings);
     /**
-     * Set the zoom manager, to get the scale of the current game.
-     *
-     * @param zoomManager the zoom manager
+     * Slide an object to an element.
      */
-    setZoomManager(zoomManager: IZoomManager): void;
-    getSettings(): AnimationManagerSettings | null | undefined;
+    slideAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: SlideAnimationSettings, insertBefore?: HTMLElement): Promise<any>;
     /**
-     * Returns if the animations are active. Animation aren't active when the window is not visible (`document.visibilityState === 'hidden'`), or `game.instantaneousMode` is true.
-     *
-     * @returns if the animations are active.
+     * Slide an object to the screen center then an element.
      */
-    animationsActive(): boolean;
+    slideToScreenCenterAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any>;
     /**
-     * Plays an animation if the animations are active. Animation aren't active when the window is not visible (`document.visibilityState === 'hidden'`), or `game.instantaneousMode` is true.
-     *
-     * @param animation the animation to play
-     * @returns the animation promise.
+     * Slide an object over an intermediate element then attach to an element.
      */
-    play(animation: BgaAnimation<BgaAnimationSettings>): Promise<BgaAnimation<BgaAnimationSettings>>;
+    slideToElementAndAttach(element: HTMLElement, overElement: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any>;
     /**
-     * Plays multiple animations in parallel.
-     *
-     * @param animations the animations to play
-     * @returns a promise for all animations.
+     * Slide an object in. The object must be attached to the destination before.
      */
-    playParallel(animations: BgaAnimation<BgaAnimationSettings>[]): Promise<BgaAnimation<BgaAnimationSettings>[]>;
+    slideIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
     /**
-     * Plays multiple animations in sequence (the second when the first ends, ...).
-     *
-     * @param animations the animations to play
-     * @returns a promise for all animations.
+     * Fade an object in. The object must be attached to the destination before.
      */
-    playSequence(animations: BgaAnimation<BgaAnimationSettings>[]): Promise<BgaAnimation<BgaAnimationSettings>[]>;
+    fadeIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: AnimationSettings): Promise<any>;
     /**
-     * Plays multiple animations with a delay between each animation start.
-     *
-     * @param animations the animations to play
-     * @param delay the delay (in ms)
-     * @returns a promise for all animations.
+     * Fade out an object and destroy it. It call be called with a toElment, in that case a slide animation will be triggered.
      */
-    playWithDelay(animations: BgaAnimation<BgaAnimationSettings>[], delay: number): Promise<BgaAnimation<BgaAnimationSettings>[]>;
+    fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: AnimationSettings): Promise<any>;
     /**
-     * Attach an element to a parent, then play animation from element's origin to its new position.
-     *
-     * @param animation the animation function
-     * @param attachElement the destination parent
-     * @returns a promise when animation ends
+     * Add a floating element over another element.
      */
-    attachWithAnimation(animation: BgaAnimation<BgaAnimationSettings>, attachElement: HTMLElement): Promise<BgaAnimation<any>>;
+    slideFloatingElement(element: HTMLElement, fromElement: HTMLElement | null | undefined, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
+    /**
+     * Add a floating element over another element.
+     */
+    addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
+    playParallel(animations: ((index: number) => Promise<any>)[]): Promise<any>;
+    playSequentially(animations: (() => Promise<any>)[]): Promise<any>;
+    playInterval(animations: ((index: number) => Promise<any>)[], interval?: number): Promise<void>;
 }
-declare const define: any;

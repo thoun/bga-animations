@@ -1,46 +1,78 @@
-<html>
+<html id="html">
     <head>
         <title>bga-animations demo</title>
         <script>
             function define() {}
         </script>
+        <link href="../bga-animations.css" rel="stylesheet"></script>
         <link href="./bga-zoom.css" rel="stylesheet"></script>
         <script src="./bga-zoom.js" type="text/javascript"></script>
         <script src="../bga-animations.js" type="text/javascript"></script>
         <link href="./demo.css" rel="stylesheet"></script>
         <script src="./manager.js" type="text/javascript"></script>
     </head>
-    <body>
+    <body id="body" style="margin: 0;">
         <div id="game_area_wrap">
             <div id="game-table">
-                <input id="instantaneousMode" type="checkbox" onclick="game.instantaneousMode = this.checked;">
-                <label for="instantaneousMode">game.instantaneousMode</label>
-                
-                <h1>Basic slide using manager</h1>
                 <div>
-                    <div id="moved-square-1" class="moved-square">Moved element 1</div>
-                    <div id="moved-square-2" class="moved-square">Moved element 2</div>
-                    <div id="moved-square-3" class="moved-square">Moved element 3</div>
-                    <div id="moved-square-4" class="moved-square">
-                        Moved element 4
-                        <button onclick="slideFromTitle(this.parentElement)">Slide from checkbox</button>
+                    <input id="instantaneousMode" type="checkbox" onclick="game.instantaneousMode = this.checked;">
+                 <label for="instantaneousMode">game.instantaneousMode</label>
+                 -
+                 Filling spaces : <select id="fillingSpaces" onchange="animationSettings.fillingSpaces = this.value;">
+                    <option value="all" selected>all</option>
+                    <option value="none">none</option>
+                    <option value="from">from</option>
+                    <option value="to">to</option>
+                </select>
+                </div>
+                <div>
+                    <div>
+                        <button onclick="slideAll()">Slide to the other box</button>
+                        <select id="slideAll-effect">
+                            <option value="" selected>(no effect)</option>
+                            <option value="blink">(with blink effect)</option>
+                            <option value="rotateAndBump">(with rotate & bump)</option>
+                        </select>
+                        <button onclick="slideAllScreenCenter()">Slide to screen center then the other box</button>
+                        <button onclick="slideAllVoid()">Slide to the void then the other box</button>
                     </div>
-                    <button onclick="slideToScreenCenter()">Slide to screen center</button>
-
-                    <div class="to-line" style="background-color: #FF000033;">
-                        <button onclick="slideTo(this.parentElement)">Slide here</button>
-                        <button onclick="slideToScreenCenterThen(this.parentElement)">Slide 1 to screen center then here</button>
+                    <div>
+                        <button onclick="fadeIn()">Fade in</button>
+                        <button onclick="fadeInFrom()">Fade in (from the void)</button>
+                        <button onclick="slideInFrom()">Slide in (from the void)</button>
                     </div>
-                    <div class="to-line" style="background-color: #00FF0033;">
-                        <button onclick="slideTo(this.parentElement)">Slide here</button>
-                        <button onclick="slideToScreenCenterThen(this.parentElement)">Slide 1 to screen center then here</button>
+                    <div>
+                        <button onclick="fadeOutAndDestroy()">Fade out and destroy</button>
+                        <button onclick="fadeOutAndDestroyTo()">Fade out (to the void) and destroy</button>
                     </div>
-                    <div class="to-line" style="background-color: #0000FF33;">
-                        <button onclick="slideTo(this.parentElement)">Slide here</button>
-                        <button onclick="slideToScreenCenterThen(this.parentElement)">Slide 1 to screen center then here</button>
-                        <button onclick="slideToHereThenDelete(this.parentElement)">Slide to here then delete</button>
+                    <div>
+                        <button onclick="addFloatingPiece(false, false)">Add floating piece</button>
+                        <button onclick="addFloatingPiece(true, false)">Add floating piece (ignore scale)</button>
+                        <button onclick="addFloatingPiece(false, true)">Add floating piece (ignore rotation)</button>
+                        <button onclick="addFloatingPiece(true, true)">Add floating piece (ignore scale & rotation)</button>
+                        <select id="addFloatingPiece-effect">
+                            <option value="" selected>(no effect)</option>
+                            <option value="slideUpAndFadeOut">(with slide up & fade out)</option>
+                            <option value="rotateAndScaleDown">(with rotate & scale down)</option>
+                        </select>
+                        -
+                        <button onclick="slideFloatingElement(false, false)">Slide floating piece</button>
+                        <button onclick="slideFloatingElement(true, false)">Slide floating piece (ignore scale)</button>
+                        <button onclick="slideFloatingElement(false, true)">Slide floating piece (ignore rotation)</button>
+                        <button onclick="slideFloatingElement(true, true)">Slide floating piece (ignore scale & rotation)</button>
+                        -
+                        <button onclick="slideFloatingElements()">Slide multiple pieces</button>
+                        <select id="slideFloatingElements-spacing">
+                            <option value="interval" selected>(interval)</option>
+                            <option value="sequentially">(sequentially)</option>
+                            <option value="parallel">(parallel)</option>
+                        </select>
+                    </div>
+                    <div id="the-void-wrapper">
+                        <strong id="the-void">The Void</strong>
                     </div>
                 </div>
+                <div class="examples"></div>
             </div>
         </div>
 

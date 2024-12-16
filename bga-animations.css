@@ -1,0 +1,16 @@
+.bga-animations_animation-surface {
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.bga-animations_filling-space {
+  display: inline-block;
+}
+
+.bga-animations_animation-wrapper {
+  display: inline-block;
+  position: absolute;
+}

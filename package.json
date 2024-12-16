@@ -4,9 +4,13 @@
   "description": "",
   "main": "bga-animations.js",
   "scripts": {
+    "build": "npm run build:ts && npm run build:scss",
+    "watch": "npm run watch:ts && npm run watch:scss",
     "build:ts": "tsc",
     "build:scss": "sass --no-source-map src/bga-animations.scss bga-animations.css",
-    "doc": "typedoc --out docs --readme none ./src/**.ts ./src/animations/**.ts"
+    "watch:ts": "tsc --watch",
+    "watch:scss": "sass --no-source-map src/bga-animations.scss bga-animations.css",
+    "doc": "typedoc --out docs --readme none ./src/**.ts"
   },
   "author": "",
   "license": "ISC",
