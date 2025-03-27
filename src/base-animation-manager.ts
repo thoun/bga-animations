@@ -20,9 +20,9 @@ class BaseAnimationManager {
     private getTopPageOffset(element: HTMLElement): DOMMatrix {
         let elementRect = element.getBoundingClientRect();
     
-        // Compute position from top-left of the page, ignoring rotation/scale changing the BR width/height
-        let x = elementRect.left + (elementRect.width - element.clientWidth)/2 + window.scrollX;
-        let y = elementRect.top + (elementRect.height - element.clientHeight)/2 + window.scrollY;
+        // Compute position of the element center from top-left of the page, ignoring rotation/scale changing the BR width/height
+        let x = elementRect.left + elementRect.width / 2 + window.scrollX;
+        let y = elementRect.top + elementRect.height / 2 + window.scrollY;
     
         return new DOMMatrix().translateSelf(x, y);
     }
@@ -120,9 +120,7 @@ class BaseAnimationManager {
     /**
      * Get the matrix of an element, to place it at the center of a parent element.
      */
-    public getFullMatrixFromElementCenter(element: HTMLElement, parentElement: HTMLElement, ignoreScale: boolean = true, ignoreRotation: boolean = true): DOMMatrix {            
-        const wrapperRect = element.getBoundingClientRect();
-
+    public getFullMatrixFromElementCenter(parentElement: HTMLElement, ignoreScale: boolean = true, ignoreRotation: boolean = true): DOMMatrix {            
         let fromRotationAndScaleMatrix = this.getRotationAndScaleMatrix(parentElement, true);
         if (ignoreScale) {
             fromRotationAndScaleMatrix = this.removeScaleFromMatrix(fromRotationAndScaleMatrix);
@@ -133,7 +131,7 @@ class BaseAnimationManager {
 
         let fromElementRect = parentElement.getBoundingClientRect();
 
-        const fromMatrix = new DOMMatrix().translateSelf(window.scrollX + fromElementRect.left + (fromElementRect.width - wrapperRect.width) / 2, window.scrollY + fromElementRect.top + (fromElementRect.height - wrapperRect.height) / 2).multiply(fromRotationAndScaleMatrix);
+        const fromMatrix = new DOMMatrix().translateSelf(window.scrollX + fromElementRect.left + fromElementRect.width / 2, window.scrollY + fromElementRect.top + fromElementRect.height / 2).multiply(fromRotationAndScaleMatrix);
         return fromMatrix;
     }
 
@@ -152,10 +150,20 @@ class BaseAnimationManager {
      * Make an empty space grow or shrink to replace where a moved object was or will be.
      * Ignore the animation settings, prefer addAnimatedSpaceIfNecessary.
      */
-    public addAnimatedSpace(element: HTMLElement, parent: HTMLElement, type: 'grow' | 'shrink', animationSettings: AnimationSettings, insertBefore?: Element): Promise<AnimationResult> {
+    public addFixedSpace(element: HTMLElement, parent: HTMLElement, insertBefore?: Element): HTMLElement {
         const space = this.createFillingSpace(element);
-        space.classList.add('bga-animations_filling-space', 'bga-animations_filling-space-'+type);
+        space.classList.add('bga-animations_filling-space');
         this.attachToElement(space, parent, insertBefore);
+        return space;
+    }
+
+    /**
+     * Make an empty space grow or shrink to replace where a moved object was or will be.
+     * Ignore the animation settings, prefer addAnimatedSpaceIfNecessary.
+     */
+    public addAnimatedSpace(element: HTMLElement, parent: HTMLElement, type: 'grow' | 'shrink', animationSettings: AnimationSettings, insertBefore?: Element): Promise<AnimationResult> {
+        const space = this.addFixedSpace(element, parent, insertBefore);
+        space.classList.add('bga-animations_filling-space-'+type);
 
         const promise = space.animate([
             { 
@@ -240,6 +248,9 @@ class BaseAnimationManager {
         animationWrapper.appendChild(element);
         animationWrapper.classList.add('bga-animations_animation-wrapper');
         this.animationSurface.appendChild(animationWrapper);
+        const wrapperBR = animationWrapper.getBoundingClientRect();
+        animationWrapper.style.left = `-${wrapperBR.width / 2}px`;
+        animationWrapper.style.top = `-${wrapperBR.height / 2}px`;
 
         return animationWrapper;
     }

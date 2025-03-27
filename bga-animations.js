@@ -62,9 +62,9 @@ var BaseAnimationManager = /** @class */ (function () {
      */
     BaseAnimationManager.prototype.getTopPageOffset = function (element) {
         var elementRect = element.getBoundingClientRect();
-        // Compute position from top-left of the page, ignoring rotation/scale changing the BR width/height
-        var x = elementRect.left + (elementRect.width - element.clientWidth) / 2 + window.scrollX;
-        var y = elementRect.top + (elementRect.height - element.clientHeight) / 2 + window.scrollY;
+        // Compute position of the element center from top-left of the page, ignoring rotation/scale changing the BR width/height
+        var x = elementRect.left + elementRect.width / 2 + window.scrollX;
+        var y = elementRect.top + elementRect.height / 2 + window.scrollY;
         return new DOMMatrix().translateSelf(x, y);
     };
     /**
@@ -146,10 +146,9 @@ var BaseAnimationManager = /** @class */ (function () {
     /**
      * Get the matrix of an element, to place it at the center of a parent element.
      */
-    BaseAnimationManager.prototype.getFullMatrixFromElementCenter = function (element, parentElement, ignoreScale, ignoreRotation) {
+    BaseAnimationManager.prototype.getFullMatrixFromElementCenter = function (parentElement, ignoreScale, ignoreRotation) {
         if (ignoreScale === void 0) { ignoreScale = true; }
         if (ignoreRotation === void 0) { ignoreRotation = true; }
-        var wrapperRect = element.getBoundingClientRect();
         var fromRotationAndScaleMatrix = this.getRotationAndScaleMatrix(parentElement, true);
         if (ignoreScale) {
             fromRotationAndScaleMatrix = this.removeScaleFromMatrix(fromRotationAndScaleMatrix);
@@ -158,7 +157,7 @@ var BaseAnimationManager = /** @class */ (function () {
             fromRotationAndScaleMatrix = this.removeRotationFromMatrix(fromRotationAndScaleMatrix);
         }
         var fromElementRect = parentElement.getBoundingClientRect();
-        var fromMatrix = new DOMMatrix().translateSelf(window.scrollX + fromElementRect.left + (fromElementRect.width - wrapperRect.width) / 2, window.scrollY + fromElementRect.top + (fromElementRect.height - wrapperRect.height) / 2).multiply(fromRotationAndScaleMatrix);
+        var fromMatrix = new DOMMatrix().translateSelf(window.scrollX + fromElementRect.left + fromElementRect.width / 2, window.scrollY + fromElementRect.top + fromElementRect.height / 2).multiply(fromRotationAndScaleMatrix);
         return fromMatrix;
     };
     /**
@@ -174,10 +173,19 @@ var BaseAnimationManager = /** @class */ (function () {
      * Make an empty space grow or shrink to replace where a moved object was or will be.
      * Ignore the animation settings, prefer addAnimatedSpaceIfNecessary.
      */
-    BaseAnimationManager.prototype.addAnimatedSpace = function (element, parent, type, animationSettings, insertBefore) {
+    BaseAnimationManager.prototype.addFixedSpace = function (element, parent, insertBefore) {
         var space = this.createFillingSpace(element);
-        space.classList.add('bga-animations_filling-space', 'bga-animations_filling-space-' + type);
+        space.classList.add('bga-animations_filling-space');
         this.attachToElement(space, parent, insertBefore);
+        return space;
+    };
+    /**
+     * Make an empty space grow or shrink to replace where a moved object was or will be.
+     * Ignore the animation settings, prefer addAnimatedSpaceIfNecessary.
+     */
+    BaseAnimationManager.prototype.addAnimatedSpace = function (element, parent, type, animationSettings, insertBefore) {
+        var space = this.addFixedSpace(element, parent, insertBefore);
+        space.classList.add('bga-animations_filling-space-' + type);
         var promise = space.animate([
             {
                 width: 0,
@@ -245,6 +253,9 @@ var BaseAnimationManager = /** @class */ (function () {
         animationWrapper.appendChild(element);
         animationWrapper.classList.add('bga-animations_animation-wrapper');
         this.animationSurface.appendChild(animationWrapper);
+        var wrapperBR = animationWrapper.getBoundingClientRect();
+        animationWrapper.style.left = "-".concat(wrapperBR.width / 2, "px");
+        animationWrapper.style.top = "-".concat(wrapperBR.height / 2, "px");
         return animationWrapper;
     };
     /**
@@ -415,6 +426,48 @@ var AnimationManager = /** @class */ (function () {
         });
     };
     /**
+     * Swap two elements.
+     */
+    AnimationManager.prototype.swap = function (elements, animationSettings) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function () {
+            var parents, nextSiblings, allAnimationSettings, finalAnimationSettings, matrixes, wrappers;
+            var _this = this;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        if (elements.length !== 2) {
+                            throw new Error('AnimationManager.swap must be called with exactly 2 elements.');
+                        }
+                        parents = elements.map(function (element) { return element.parentElement; });
+                        nextSiblings = elements.map(function (element) { return element.nextElementSibling; });
+                        if (!this.game.bgaAnimationsActive()) {
+                            elements.forEach(function (element, index) { return _this.base.attachToElement(element, parents[1 - index], nextSiblings[1 - index]); });
+                            return [2 /*return*/];
+                        }
+                        allAnimationSettings = __assign(__assign({}, this.animationSettings), animationSettings);
+                        finalAnimationSettings = __assign(__assign({}, allAnimationSettings), { parallelAnimations: __spreadArray([this.base.createBumpAnimation((_a = allAnimationSettings === null || allAnimationSettings === void 0 ? void 0 : allAnimationSettings.bump) !== null && _a !== void 0 ? _a : 1.2)], (_b = allAnimationSettings === null || allAnimationSettings === void 0 ? void 0 : allAnimationSettings.parallelAnimations) !== null && _b !== void 0 ? _b : [], true) });
+                        matrixes = elements.map(function (element) { return _this.base.getFullMatrix(element); });
+                        wrappers = elements.map(function (element) { return _this.base.wrapOnAnimationSurface(element); });
+                        return [4 /*yield*/, Promise.all(elements.map(function (element, index) { return Promise.all([
+                                { animationWrapper: _this.base.addFixedSpace(element, parents[1 - index], nextSiblings[1 - index]) },
+                                _this.base.animateOnAnimationSurface(wrappers[index], matrixes[index], matrixes[1 - index], __assign({ easing: 'ease-in-out' }, finalAnimationSettings)),
+                                //this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', allAnimationSettings, nextSibling),
+                            ])
+                                .then(function (results) {
+                                var _a, _b;
+                                // add before the filling space if it exists, else before the nextSibling
+                                _this.base.attachToElement(element, parents[1 - index], (_b = (_a = results[0]) === null || _a === void 0 ? void 0 : _a.animationWrapper) !== null && _b !== void 0 ? _b : nextSiblings[1 - index]);
+                                results.forEach(function (result) { var _a; return (_a = result === null || result === void 0 ? void 0 : result.animationWrapper) === null || _a === void 0 ? void 0 : _a.remove(); });
+                            }); }))];
+                    case 1:
+                        _c.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
      * Slide an object to the screen center then an element.
      */
     AnimationManager.prototype.slideToScreenCenterAndAttach = function (element, toElement, animationSettings, insertBefore) {
@@ -487,7 +540,7 @@ var AnimationManager = /** @class */ (function () {
                         this.base.attachToElement(element, toElement, insertBefore);
                         toMatrix = this.base.getFullMatrix(element);
                         wrapper = this.base.wrapOnAnimationSurface(element);
-                        overElementMatrix = this.base.getFullMatrixFromElementCenter(wrapper, overElement);
+                        overElementMatrix = this.base.getFullMatrixFromElementCenter(overElement);
                         return [4 /*yield*/, Promise.all([
                                 this.base.animateOnAnimationSurface(wrapper, fromMatrix, overElementMatrix, firstAnimationSettings),
                                 this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', firstAnimationSettings, nextSibling),
@@ -529,7 +582,7 @@ var AnimationManager = /** @class */ (function () {
                         elementMatrix = this.base.getFullMatrix(element);
                         wrapper = this.base.wrapOnAnimationSurface(element);
                         fromMatrix = fromElement ?
-                            this.base.getFullMatrixFromElementCenter(wrapper, fromElement, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : false, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true)
+                            this.base.getFullMatrixFromElementCenter(fromElement, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : false, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true)
                             : elementMatrix;
                         promises = [
                             this.base.addAnimatedSpaceIfNecessary(element, parentElement, 'grow', allAnimationSettings, nextSibling),
@@ -624,9 +677,9 @@ var AnimationManager = /** @class */ (function () {
                         }
                         allAnimationSettings = __assign(__assign({}, this.animationSettings), animationSettings);
                         wrapper = this.base.wrapOnAnimationSurface(element);
-                        toMatrix = this.base.getFullMatrixFromElementCenter(wrapper, toElement, (_a = allAnimationSettings.ignoreScale) !== null && _a !== void 0 ? _a : true, (_b = allAnimationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true);
+                        toMatrix = this.base.getFullMatrixFromElementCenter(toElement, (_a = allAnimationSettings.ignoreScale) !== null && _a !== void 0 ? _a : true, (_b = allAnimationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true);
                         fromMatrix = fromElement ?
-                            this.base.getFullMatrixFromElementCenter(wrapper, fromElement, (_c = allAnimationSettings.ignoreScale) !== null && _c !== void 0 ? _c : true, (_d = allAnimationSettings.ignoreRotation) !== null && _d !== void 0 ? _d : true) :
+                            this.base.getFullMatrixFromElementCenter(fromElement, (_c = allAnimationSettings.ignoreScale) !== null && _c !== void 0 ? _c : true, (_d = allAnimationSettings.ignoreRotation) !== null && _d !== void 0 ? _d : true) :
                             toMatrix;
                         promises = [
                             this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, __assign({ easing: 'ease-out' }, allAnimationSettings)),

@@ -231,6 +231,13 @@ function slideAllVoid() {
     });
 }
 
+function swap() {
+    lines.forEach((lines, index) => {
+        const elements = ['from', 'to'].map(side => document.getElementById(`${side}${index}`).firstElementChild);
+        animationManager.swap(elements, animationSettings);
+    });
+}
+
 /**
  * Add the moved element with a fade in effect.
  */

@@ -58,6 +58,45 @@ class AnimationManager {
         });
     }
 
+
+    /**
+     * Swap two elements.
+     */
+    public async swap(elements: HTMLElement[], animationSettings?: SlideAnimationSettings): Promise<any> {
+        if (elements.length !== 2) {
+            throw new Error('AnimationManager.swap must be called with exactly 2 elements.');
+        }
+
+        const parents = elements.map(element => element.parentElement);
+        const nextSiblings = elements.map(element => element.nextElementSibling);
+
+        if (!this.game.bgaAnimationsActive()) {
+            elements.forEach((element, index) => this.base.attachToElement(element, parents[1 - index], nextSiblings[1 - index]));
+            return;
+        }
+
+        const allAnimationSettings = { ...this.animationSettings, ...animationSettings };
+
+        const finalAnimationSettings: SlideAnimationSettings = {
+            ...allAnimationSettings,
+            parallelAnimations: [this.base.createBumpAnimation(allAnimationSettings?.bump ?? 1.2), ...allAnimationSettings?.parallelAnimations ?? []],
+        }
+
+        const matrixes = elements.map(element => this.base.getFullMatrix(element));
+        const wrappers = elements.map(element => this.base.wrapOnAnimationSurface(element));
+        
+        await Promise.all(elements.map((element, index) => Promise.all([
+            { animationWrapper: this.base.addFixedSpace(element, parents[1 - index], nextSiblings[1 - index]) } as SurfaceAnimationResult,
+            this.base.animateOnAnimationSurface(wrappers[index], matrixes[index], matrixes[1 - index], { easing: 'ease-in-out', ...finalAnimationSettings }),
+            //this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', allAnimationSettings, nextSibling),
+        ])
+        .then(results => {
+            // add before the filling space if it exists, else before the nextSibling
+            this.base.attachToElement(element, parents[1 - index], results[0]?.animationWrapper ?? nextSiblings[1 - index]);
+            results.forEach(result => result?.animationWrapper?.remove());
+        })));
+    }
+
     /**
      * Slide an object to the screen center then an element.
      */
@@ -122,7 +161,7 @@ class AnimationManager {
         this.base.attachToElement(element, toElement, insertBefore);
         const toMatrix = this.base.getFullMatrix(element);
         const wrapper = this.base.wrapOnAnimationSurface(element);
-        const overElementMatrix = this.base.getFullMatrixFromElementCenter(wrapper, overElement);
+        const overElementMatrix = this.base.getFullMatrixFromElementCenter(overElement);
         const toCenter = await Promise.all([
             this.base.animateOnAnimationSurface(wrapper, fromMatrix, overElementMatrix, firstAnimationSettings),
             this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', firstAnimationSettings, nextSibling),
@@ -156,7 +195,7 @@ class AnimationManager {
         const wrapper = this.base.wrapOnAnimationSurface(element);
         
         const fromMatrix = fromElement ? 
-            this.base.getFullMatrixFromElementCenter(wrapper, fromElement, animationSettings?.ignoreScale ?? false, animationSettings?.ignoreRotation ?? true)
+            this.base.getFullMatrixFromElementCenter(fromElement, animationSettings?.ignoreScale ?? false, animationSettings?.ignoreRotation ?? true)
             : elementMatrix;
 
         const promises = [
@@ -236,9 +275,9 @@ class AnimationManager {
         // before computation, to we able to get clientWidth/clientHeight
         const wrapper = this.base.wrapOnAnimationSurface(element);
 
-        const toMatrix = this.base.getFullMatrixFromElementCenter(wrapper, toElement, allAnimationSettings.ignoreScale ?? true, allAnimationSettings.ignoreRotation ?? true);
+        const toMatrix = this.base.getFullMatrixFromElementCenter(toElement, allAnimationSettings.ignoreScale ?? true, allAnimationSettings.ignoreRotation ?? true);
         const fromMatrix = fromElement ?
-            this.base.getFullMatrixFromElementCenter(wrapper, fromElement, allAnimationSettings.ignoreScale ?? true, allAnimationSettings.ignoreRotation ?? true) :
+            this.base.getFullMatrixFromElementCenter(fromElement, allAnimationSettings.ignoreScale ?? true, allAnimationSettings.ignoreRotation ?? true) :
             toMatrix;
         
         const promises = [

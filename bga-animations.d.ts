@@ -36,11 +36,16 @@ declare class BaseAnimationManager {
     /**
      * Get the matrix of an element, to place it at the center of a parent element.
      */
-    getFullMatrixFromElementCenter(element: HTMLElement, parentElement: HTMLElement, ignoreScale?: boolean, ignoreRotation?: boolean): DOMMatrix;
+    getFullMatrixFromElementCenter(parentElement: HTMLElement, ignoreScale?: boolean, ignoreRotation?: boolean): DOMMatrix;
     /**
      * Create a temp div of the same size as the element.
      */
     createFillingSpace(elem: HTMLElement): HTMLElement;
+    /**
+     * Make an empty space grow or shrink to replace where a moved object was or will be.
+     * Ignore the animation settings, prefer addAnimatedSpaceIfNecessary.
+     */
+    addFixedSpace(element: HTMLElement, parent: HTMLElement, insertBefore?: Element): HTMLElement;
     /**
      * Make an empty space grow or shrink to replace where a moved object was or will be.
      * Ignore the animation settings, prefer addAnimatedSpaceIfNecessary.
@@ -99,6 +104,10 @@ declare class AnimationManager {
      * Slide an object to an element.
      */
     slideAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: SlideAnimationSettings, insertBefore?: HTMLElement): Promise<any>;
+    /**
+     * Swap two elements.
+     */
+    swap(elements: HTMLElement[], animationSettings?: SlideAnimationSettings): Promise<any>;
     /**
      * Slide an object to the screen center then an element.
      */
