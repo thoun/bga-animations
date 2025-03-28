@@ -231,6 +231,17 @@ function slideAllVoid() {
     });
 }
 
+/**
+ * Slide the moved element to the screen center, and then to the opposite container.
+ */
+function slideAllCustomFunction() {
+    lines.forEach((lines, index) => { 
+        const element = getElement(index);
+        const toElement = getToElement(index);
+        slideToEachScreenCornerAndAttach(element, toElement, animationSettings, toElement.id.includes('to') ? toElement.lastChild : undefined);
+    });
+}
+
 function swap() {
     lines.forEach((lines, index) => {
         const elements = ['from', 'to'].map(side => document.getElementById(`${side}${index}`).firstElementChild);
@@ -409,4 +420,29 @@ function displayBR(element) {
     brDiv.style.left = window.scrollX + elementRect.left+'px';
     brDiv.style.width = elementRect.width+'px';
     brDiv.style.height = elementRect.height+'px';
+}
+
+async function slideToEachScreenCornerAndAttach(element, toElement, animationSettings, insertBefore) {
+    const matrixes = [
+        new DOMMatrix().translateSelf(window.scrollX, window.scrollY),
+        new DOMMatrix().translateSelf(window.scrollX + window.innerWidth, window.scrollY),
+        new DOMMatrix().translateSelf(window.scrollX + window.innerWidth, window.scrollY + window.innerHeight),
+        new DOMMatrix().translateSelf(window.scrollX, window.scrollY + window.innerHeight),
+    ];
+
+    const animationFunctions = matrixes.map(matrix => async (runningAnimation, animationSettings) => {
+        await animationManager.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, matrix, animationSettings);
+        runningAnimation.fromMatrix = matrix;
+        return runningAnimation;
+    });
+
+    const toFinalPlace = async (runningAnimation, animationSettings) => {
+        await animationManager.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, runningAnimation.toMatrix, animationSettings);
+        return runningAnimation;
+    };
+
+    return await animationManager.sequenceAnimationsAttach(element, toElement, [
+        ...animationFunctions, 
+        toFinalPlace, 
+    ], animationSettings, insertBefore);
 }

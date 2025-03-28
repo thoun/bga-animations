@@ -1,7 +1,7 @@
 class AnimationManager {
     //private runningAnimations: Animation[] = [];
 
-    private base: BaseAnimationManager = new BaseAnimationManager();
+    public base: BaseAnimationManager = new BaseAnimationManager();
 
     private animationSettings: AnimationManagerSettings; 
 
@@ -29,8 +29,10 @@ class AnimationManager {
     public async slideAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: SlideAnimationSettings, insertBefore?: HTMLElement): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
             this.base.attachToElement(element, toElement, insertBefore);
-            return;
+            return null;
         }
+        const runningAnimation = this.base.startAttachAnimation(element, toElement, insertBefore);
+        const { fromParent, fromNextSibling, wrapper, fromMatrix, toMatrix } = runningAnimation;
 
         const allAnimationSettings = { ...this.animationSettings, ...animationSettings };
 
@@ -38,23 +40,16 @@ class AnimationManager {
             ...allAnimationSettings,
             parallelAnimations: [this.base.createBumpAnimation(allAnimationSettings?.bump ?? 1.2), ...allAnimationSettings?.parallelAnimations ?? []],
         }
-
-        const fromElement = element.parentElement;
-        const nextSibling = element.nextElementSibling;
         
-        const fromMatrix = this.base.getFullMatrix(element);
-        this.base.attachToElement(element, toElement, insertBefore);
-        const toMatrix = this.base.getFullMatrix(element);
-        const wrapper = this.base.wrapOnAnimationSurface(element);
         await Promise.all([
             this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', allAnimationSettings, insertBefore),
             this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, { easing: 'ease-in-out', ...finalAnimationSettings }),
-            this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', allAnimationSettings, nextSibling),
+            this.base.addAnimatedSpaceIfNecessary(element, fromParent, 'shrink', allAnimationSettings, fromNextSibling),
         ])
         .then(results => {
-            // add before the filling space if it exists, else before the nextSibling
-            this.base.attachToElement(element, toElement, results[0]?.animationWrapper ?? insertBefore);
-            results.forEach(result => result?.animationWrapper?.remove());
+            runningAnimation.toSpaceWrapper = results[0].animationWrapper;
+            runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+            this.base.endRunningAnimation(runningAnimation);
         });
     }
 
@@ -96,86 +91,95 @@ class AnimationManager {
             results.forEach(result => result?.animationWrapper?.remove());
         })));
     }
+    
+    /**
+     * Play a list of animations then attach to an element.
+     */
+    public async sequenceAnimationsAttach(element: HTMLElement, toElement: HTMLElement, animations: ((runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => Promise<RunningAnimation>)[], animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any> {
+        if (!this.game.bgaAnimationsActive()) {
+            this.base.attachToElement(element, toElement, insertBefore);
+            return null;
+        }
+        let runningAnimation = this.base.startAttachAnimation(element, toElement, insertBefore);
+
+        if (Array.isArray(animationSettings) && animationSettings.length !== animations.length) {
+            throw new Error('slideToScreenCenterAndAttach animationSettings array must be made of as many elements as animations');
+        }
+
+        for (let index = 0; index < animations.length; index++) {
+            const currentAnimation = animations[index];
+            const currentAnimationSettings = Array.isArray(animationSettings) ? { ...this.animationSettings, ...animationSettings[index] } : { ...this.animationSettings, ...animationSettings };
+            
+            const promises: Promise<any>[] = [
+                currentAnimation(runningAnimation, currentAnimationSettings),
+            ];            
+            if (index === 0) { // shrinking animation
+                promises.push(this.base.addAnimatedSpaceIfNecessary(element, runningAnimation.fromParent, 'shrink', currentAnimationSettings, runningAnimation.fromNextSibling));
+            }
+            if (index === animations.length - 1) {
+                promises.push(this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', currentAnimationSettings, insertBefore));
+            }
+
+            const results = await Promise.all(promises);
+
+            if (index === 0) { // remove shrinking animation
+                results[1]?.animationWrapper?.remove();
+            }
+            if (index === animations.length - 1) {
+                runningAnimation.toSpaceWrapper = results[animations.length - 1]?.animationWrapper;
+                runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+            }
+            
+            runningAnimation = results[0];
+        }
+        this.base.endRunningAnimation(runningAnimation);
+    }
 
     /**
      * Slide an object to the screen center then an element.
      */
     public async slideToScreenCenterAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any> {
-        if (!this.game.bgaAnimationsActive()) {
-            this.base.attachToElement(element, toElement, insertBefore);
-            return;
-        }
-
-        if (Array.isArray(animationSettings) && animationSettings.length !== 2) {
-            throw new Error('slideToScreenCenterAndAttach animationSettings array must be made of 2 elements');
-        }
-
-        const firstAnimationSettings = Array.isArray(animationSettings) ? { ...this.animationSettings, ...animationSettings[0] } : { ...this.animationSettings, ...animationSettings };
-        const secondAnimationSettings = Array.isArray(animationSettings) ? { ...this.animationSettings, ...animationSettings[1] } : { ...this.animationSettings, ...animationSettings };
-
-        const fromElement = element.parentElement;
-        const nextSibling = element.nextElementSibling;
-        
         const elementBR = element.getBoundingClientRect();
         const centerScreenMatrix = new DOMMatrix().translateSelf(window.scrollX + (window.innerWidth - elementBR.width) / 2, window.scrollY + (window.innerHeight - elementBR.height) / 2);
-        const fromMatrix = this.base.getFullMatrix(element);
-        this.base.attachToElement(element, toElement, insertBefore);
-        const toMatrix = this.base.getFullMatrix(element);
-        const wrapper = this.base.wrapOnAnimationSurface(element);
-        const toCenter = await Promise.all([
-            this.base.animateOnAnimationSurface(wrapper, fromMatrix, centerScreenMatrix, firstAnimationSettings),
-            this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', firstAnimationSettings, nextSibling),
-        ]);
-        toCenter[1]?.animationWrapper?.remove();
-        
-        const results = await Promise.all([
-            this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', secondAnimationSettings, insertBefore),
-            this.base.animateOnAnimationSurface(wrapper, centerScreenMatrix, toMatrix, secondAnimationSettings),
-        ]);
-        
-        // add before the filling space if it exists, else before the nextSibling
-        this.base.attachToElement(element, toElement, results[0]?.animationWrapper ?? insertBefore);
-        results.forEach(result => result?.animationWrapper?.remove());
+
+        const toCenterScreen = async (runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => {
+            await this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, centerScreenMatrix, animationSettings);
+            runningAnimation.fromMatrix = centerScreenMatrix;
+            return runningAnimation;
+        };
+
+        const toFinalPlace = async (runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => {
+            await this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, runningAnimation.toMatrix, animationSettings);
+            return runningAnimation;
+        };
+
+        return await this.sequenceAnimationsAttach(element, toElement, [
+            toCenterScreen, 
+            toFinalPlace, 
+        ], animationSettings, insertBefore);
     }
 
     /**
      * Slide an object over an intermediate element then attach to an element.
      */
     public async slideToElementAndAttach(element: HTMLElement, overElement: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any> {
-        if (!this.game.bgaAnimationsActive()) {
-            this.base.attachToElement(element, toElement, insertBefore);
-            return;
-        }
-
-        if (Array.isArray(animationSettings) && animationSettings.length !== 2) {
-            throw new Error('slideToScreenCenterAndAttach animationSettings array must be made of 2 elements');
-        }
-
-        const firstAnimationSettings = Array.isArray(animationSettings) ? { ...this.animationSettings, ...animationSettings[0] } : { ...this.animationSettings, ...animationSettings };
-        const secondAnimationSettings = Array.isArray(animationSettings) ? { ...this.animationSettings, ...animationSettings[1] } : { ...this.animationSettings, ...animationSettings };
-
-        const fromElement = element.parentElement;
-        const nextSibling = element.nextElementSibling;
-        
-        const fromMatrix = this.base.getFullMatrix(element);
-        this.base.attachToElement(element, toElement, insertBefore);
-        const toMatrix = this.base.getFullMatrix(element);
-        const wrapper = this.base.wrapOnAnimationSurface(element);
         const overElementMatrix = this.base.getFullMatrixFromElementCenter(overElement);
-        const toCenter = await Promise.all([
-            this.base.animateOnAnimationSurface(wrapper, fromMatrix, overElementMatrix, firstAnimationSettings),
-            this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', firstAnimationSettings, nextSibling),
-        ]);
-        toCenter[1]?.animationWrapper?.remove();
-        
-        const results = await Promise.all([
-            this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', secondAnimationSettings, insertBefore),
-            this.base.animateOnAnimationSurface(wrapper, overElementMatrix, toMatrix, secondAnimationSettings),
-        ]);
-        
-        // add before the filling space if it exists, else before the nextSibling
-        this.base.attachToElement(element, toElement, results[0]?.animationWrapper ?? insertBefore);
-        results.forEach(result => result?.animationWrapper?.remove());
+
+        const toCenterScreen = async (runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => {
+            await this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, overElementMatrix, animationSettings);
+            runningAnimation.fromMatrix = overElementMatrix;
+            return runningAnimation;
+        };
+
+        const toFinalPlace = async (runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => {
+            await this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, runningAnimation.toMatrix, animationSettings);
+            return runningAnimation;
+        };
+
+        return await this.sequenceAnimationsAttach(element, toElement, [
+            toCenterScreen, 
+            toFinalPlace, 
+        ], animationSettings, insertBefore);
     }
 
     /**
@@ -186,28 +190,21 @@ class AnimationManager {
             return;
         }
 
+        const runningAnimation = this.base.startSlideInAnimation(element, fromElement, animationSettings?.ignoreScale ?? true, animationSettings?.ignoreRotation ?? true);
+        const { toParent, toNextSibling, wrapper, fromMatrix, toMatrix } = runningAnimation;
+
         const allAnimationSettings = { ...this.animationSettings, ...animationSettings };
 
-        const parentElement = element.parentElement;
-        const nextSibling = element.nextElementSibling;
-        
-        const elementMatrix = this.base.getFullMatrix(element);
-        const wrapper = this.base.wrapOnAnimationSurface(element);
-        
-        const fromMatrix = fromElement ? 
-            this.base.getFullMatrixFromElementCenter(fromElement, animationSettings?.ignoreScale ?? false, animationSettings?.ignoreRotation ?? true)
-            : elementMatrix;
-
         const promises = [
-            this.base.addAnimatedSpaceIfNecessary(element, parentElement, 'grow', allAnimationSettings, nextSibling),
-            this.base.animateOnAnimationSurface(wrapper, fromMatrix, elementMatrix, { easing: 'ease-out', ...allAnimationSettings }),
+            this.base.addAnimatedSpaceIfNecessary(element, toParent, 'grow', allAnimationSettings, toNextSibling),
+            this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, { easing: 'ease-out', ...allAnimationSettings }),
         ];
 
         await Promise.all(promises)
         .then(results => {
-            // add before the filling space if it exists, else before the nextSibling
-            this.base.attachToElement(element, parentElement, results[0]?.animationWrapper ?? nextSibling);
-            results.forEach(result => result?.animationWrapper?.remove());
+            runningAnimation.toSpaceWrapper = results[0].animationWrapper;
+            runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+            this.base.endRunningAnimation(runningAnimation);
         });
     }
 
@@ -243,22 +240,18 @@ class AnimationManager {
             parallelAnimations: [this.base.createFadeAnimation('out'), ...animationSettings?.parallelAnimations ?? []],
         }
 
-        const fromElement = element.parentElement;
-        const nextSibling = element.nextElementSibling;
-        
-        const fromMatrix = this.base.getFullMatrix(element);
-        const wrapper = this.base.wrapOnAnimationSurface(element);
-        wrapper.style.transform = fromMatrix.toString();
-
-        const toMatrix = toElement ? this.base.getFullMatrix(toElement) : fromMatrix;
+        const runningAnimation = this.base.startSlideOutAnimation(element, toElement, false, false);
+        const { wrapper, fromMatrix, toMatrix } = runningAnimation;
 
         await Promise.all([
-            this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', animationSettings, nextSibling),
+            this.base.addAnimatedSpaceIfNecessary(element, runningAnimation.fromParent, 'shrink', animationSettings, runningAnimation.fromNextSibling),
             this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, { easing: 'ease-in', ...this.animationSettings, ...finalAnimationSettings }),
         ])
         .then(results => {
             element.remove();
-            results.forEach(result => result?.animationWrapper?.remove());
+            runningAnimation.element = null;
+            runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+            this.base.endRunningAnimation(runningAnimation);
         });
     }
 
@@ -298,12 +291,24 @@ class AnimationManager {
         return this.slideFloatingElement(element, null, toElement, { bump: null, ...animationSettings });
     }
 
+    /**
+     * Play multiple animations a the same time.
+     * 
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     public playParallel(animations: ((index: number) => Promise<any>)[]): Promise<any> {
         return Promise.all(
             animations.map((animation, index) => animation(index))
         );
     }
 
+    /**
+     * Play multiple animations one after the other.
+     * 
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     public playSequentially(animations: (() => Promise<any>)[]): Promise<any> {
         return animations.reduce(
           (prevPromise, animation) => prevPromise.then(() => animation()),
@@ -311,6 +316,12 @@ class AnimationManager {
         );
     }
 
+    /**
+     * Play multiple animations with a fixed interval between each animation.
+     * 
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     public playInterval(animations: ((index: number) => Promise<any>)[], interval: number = this.animationSettings.duration / 4): Promise<void> {
         return new Promise((resolve) => {
             if (animations.length === 0) {

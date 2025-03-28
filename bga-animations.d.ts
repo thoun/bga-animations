@@ -90,10 +90,14 @@ declare class BaseAnimationManager {
      * Attach an element to a new parent.
      */
     attachToElement(element: HTMLElement, toElement: HTMLElement, insertBefore?: Element): void;
+    startSlideInAnimation(element: HTMLElement, fromElement?: HTMLElement, fromIgnoreScale?: boolean, fromIgnoreRotation?: boolean): RunningAnimation | null;
+    startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale?: boolean, fromIgnoreRotation?: boolean): RunningAnimation | null;
+    startAttachAnimation(element: HTMLElement, toElement: HTMLElement, insertBefore?: HTMLElement): RunningAnimation | null;
+    endRunningAnimation(attachAnimation: RunningAnimation): void;
 }
 declare class AnimationManager {
     game: Game;
-    private base;
+    base: BaseAnimationManager;
     private animationSettings;
     /**
      * @param game the BGA game class, usually it will be `this`
@@ -108,6 +112,10 @@ declare class AnimationManager {
      * Swap two elements.
      */
     swap(elements: HTMLElement[], animationSettings?: SlideAnimationSettings): Promise<any>;
+    /**
+     * Play a list of animations then attach to an element.
+     */
+    sequenceAnimationsAttach(element: HTMLElement, toElement: HTMLElement, animations: ((runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => Promise<RunningAnimation>)[], animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any>;
     /**
      * Slide an object to the screen center then an element.
      */
@@ -136,7 +144,25 @@ declare class AnimationManager {
      * Add a floating element over another element.
      */
     addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
+    /**
+     * Play multiple animations a the same time.
+     *
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     playParallel(animations: ((index: number) => Promise<any>)[]): Promise<any>;
+    /**
+     * Play multiple animations one after the other.
+     *
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     playSequentially(animations: (() => Promise<any>)[]): Promise<any>;
+    /**
+     * Play multiple animations with a fixed interval between each animation.
+     *
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     playInterval(animations: ((index: number) => Promise<any>)[], interval?: number): Promise<void>;
 }

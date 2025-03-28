@@ -69,9 +69,23 @@ interface FloatingPieceAnimationSettings extends SlideAnimationSettings {
 
 interface AnimationResult {
     animation: Animation;
+    element?: HTMLElement;
     animationWrapper?: HTMLElement;
 }
 
 interface SurfaceAnimationResult extends AnimationResult {
-    endMatrix: DOMMatrix | null;
+    toMatrix: DOMMatrix | null;
+}
+
+interface RunningAnimation {
+    element?: HTMLElement;
+    wrapper?: HTMLElement;
+    fromParent?: HTMLElement;
+    fromNextSibling?: HTMLElement;
+    toParent?: HTMLElement;
+    toNextSibling?: HTMLElement;
+    fromMatrix: DOMMatrix | null;
+    toMatrix: DOMMatrix | null;
+    toSpaceWrapper?: HTMLElement;
+    wrappersToRemove?: HTMLElement[];
 }

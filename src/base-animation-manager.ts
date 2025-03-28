@@ -345,9 +345,10 @@ class BaseAnimationManager {
             ).finished);
         });
         
-        return await Promise.all(promises).then(animations => ({
+        return await Promise.all(promises).then(animations => (<SurfaceAnimationResult>{
             animation: animations[0], animationWrapper,
-            endMatrix: toMatrix,
+            fromMatrix,
+            toMatrix,
         }));
     }
 
@@ -360,5 +361,76 @@ class BaseAnimationManager {
         } else {
             toElement.appendChild(element);insertBefore
         }
+    }
+
+    public startSlideInAnimation(element: HTMLElement, fromElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true): RunningAnimation | null {
+        const toParent = element.parentElement;
+        const toNextSibling = element.nextElementSibling;  
+        const toMatrix = this.getFullMatrix(element);      
+        const fromMatrix = fromElement ? 
+            this.getFullMatrixFromElementCenter(fromElement, fromIgnoreScale, fromIgnoreRotation)
+            : toMatrix;
+        const wrapper = this.wrapOnAnimationSurface(element);
+
+        return <RunningAnimation>{
+            element,
+            fromParent: fromElement,
+            toParent,
+            toNextSibling,
+            wrapper,
+            fromMatrix,
+            toMatrix,
+            wrappersToRemove: [wrapper],
+        };
+    }
+
+    public startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true): RunningAnimation | null {
+        const fromParent = element.parentElement;
+        const fromNextSibling = element.nextElementSibling;  
+        const fromMatrix = this.getFullMatrix(element);      
+        const toMatrix = toElement ? 
+            this.getFullMatrixFromElementCenter(toElement, fromIgnoreScale, fromIgnoreRotation)
+            : fromMatrix;
+        const wrapper = this.wrapOnAnimationSurface(element);
+
+        return <RunningAnimation>{
+            element,
+            fromParent,
+            fromNextSibling,
+            toParent: toElement,
+            wrapper,
+            fromMatrix,
+            toMatrix,
+            wrappersToRemove: [wrapper],
+        };
+    }
+
+    public startAttachAnimation(element: HTMLElement, toElement: HTMLElement, insertBefore?: HTMLElement): RunningAnimation | null {
+        const fromParent = element.parentElement;
+        const fromNextSibling = element.nextElementSibling;        
+        const fromMatrix = this.getFullMatrix(element);
+        this.attachToElement(element, toElement, insertBefore);
+        const toMatrix = this.getFullMatrix(element);
+        const wrapper = this.wrapOnAnimationSurface(element);
+
+        return <RunningAnimation>{
+            element,
+            fromParent,
+            fromNextSibling,
+            toParent: toElement,
+            toNextSibling: insertBefore,
+            wrapper,
+            fromMatrix,
+            toMatrix,
+            wrappersToRemove: [wrapper],
+        };
+    }
+
+    public endRunningAnimation(attachAnimation: RunningAnimation): void {
+        if (attachAnimation.element) {
+            // add before the filling space if it exists, else before the nextSibling
+            this.attachToElement(attachAnimation.element, attachAnimation.toParent, attachAnimation.toSpaceWrapper ?? attachAnimation.toNextSibling);
+        }
+        attachAnimation.wrappersToRemove?.forEach(result => result?.remove());
     }
 }

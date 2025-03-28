@@ -338,7 +338,8 @@ var BaseAnimationManager = /** @class */ (function () {
                         return [4 /*yield*/, Promise.all(promises).then(function (animations) { return ({
                                 animation: animations[0],
                                 animationWrapper: animationWrapper,
-                                endMatrix: toMatrix,
+                                fromMatrix: fromMatrix,
+                                toMatrix: toMatrix,
                             }); })];
                     case 1: return [2 /*return*/, _b.sent()];
                 }
@@ -356,6 +357,75 @@ var BaseAnimationManager = /** @class */ (function () {
             toElement.appendChild(element);
             insertBefore;
         }
+    };
+    BaseAnimationManager.prototype.startSlideInAnimation = function (element, fromElement, fromIgnoreScale, fromIgnoreRotation) {
+        if (fromIgnoreScale === void 0) { fromIgnoreScale = true; }
+        if (fromIgnoreRotation === void 0) { fromIgnoreRotation = true; }
+        var toParent = element.parentElement;
+        var toNextSibling = element.nextElementSibling;
+        var toMatrix = this.getFullMatrix(element);
+        var fromMatrix = fromElement ?
+            this.getFullMatrixFromElementCenter(fromElement, fromIgnoreScale, fromIgnoreRotation)
+            : toMatrix;
+        var wrapper = this.wrapOnAnimationSurface(element);
+        return {
+            element: element,
+            fromParent: fromElement,
+            toParent: toParent,
+            toNextSibling: toNextSibling,
+            wrapper: wrapper,
+            fromMatrix: fromMatrix,
+            toMatrix: toMatrix,
+            wrappersToRemove: [wrapper],
+        };
+    };
+    BaseAnimationManager.prototype.startSlideOutAnimation = function (element, toElement, fromIgnoreScale, fromIgnoreRotation) {
+        if (fromIgnoreScale === void 0) { fromIgnoreScale = true; }
+        if (fromIgnoreRotation === void 0) { fromIgnoreRotation = true; }
+        var fromParent = element.parentElement;
+        var fromNextSibling = element.nextElementSibling;
+        var fromMatrix = this.getFullMatrix(element);
+        var toMatrix = toElement ?
+            this.getFullMatrixFromElementCenter(toElement, fromIgnoreScale, fromIgnoreRotation)
+            : fromMatrix;
+        var wrapper = this.wrapOnAnimationSurface(element);
+        return {
+            element: element,
+            fromParent: fromParent,
+            fromNextSibling: fromNextSibling,
+            toParent: toElement,
+            wrapper: wrapper,
+            fromMatrix: fromMatrix,
+            toMatrix: toMatrix,
+            wrappersToRemove: [wrapper],
+        };
+    };
+    BaseAnimationManager.prototype.startAttachAnimation = function (element, toElement, insertBefore) {
+        var fromParent = element.parentElement;
+        var fromNextSibling = element.nextElementSibling;
+        var fromMatrix = this.getFullMatrix(element);
+        this.attachToElement(element, toElement, insertBefore);
+        var toMatrix = this.getFullMatrix(element);
+        var wrapper = this.wrapOnAnimationSurface(element);
+        return {
+            element: element,
+            fromParent: fromParent,
+            fromNextSibling: fromNextSibling,
+            toParent: toElement,
+            toNextSibling: insertBefore,
+            wrapper: wrapper,
+            fromMatrix: fromMatrix,
+            toMatrix: toMatrix,
+            wrappersToRemove: [wrapper],
+        };
+    };
+    BaseAnimationManager.prototype.endRunningAnimation = function (attachAnimation) {
+        var _a, _b;
+        if (attachAnimation.element) {
+            // add before the filling space if it exists, else before the nextSibling
+            this.attachToElement(attachAnimation.element, attachAnimation.toParent, (_a = attachAnimation.toSpaceWrapper) !== null && _a !== void 0 ? _a : attachAnimation.toNextSibling);
+        }
+        (_b = attachAnimation.wrappersToRemove) === null || _b === void 0 ? void 0 : _b.forEach(function (result) { return result === null || result === void 0 ? void 0 : result.remove(); });
     };
     return BaseAnimationManager;
 }());
@@ -390,33 +460,29 @@ var AnimationManager = /** @class */ (function () {
     AnimationManager.prototype.slideAndAttach = function (element, toElement, animationSettings, insertBefore) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var allAnimationSettings, finalAnimationSettings, fromElement, nextSibling, fromMatrix, toMatrix, wrapper;
+            var runningAnimation, fromParent, fromNextSibling, wrapper, fromMatrix, toMatrix, allAnimationSettings, finalAnimationSettings;
             var _this = this;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
                         if (!this.game.bgaAnimationsActive()) {
                             this.base.attachToElement(element, toElement, insertBefore);
-                            return [2 /*return*/];
+                            return [2 /*return*/, null];
                         }
+                        runningAnimation = this.base.startAttachAnimation(element, toElement, insertBefore);
+                        fromParent = runningAnimation.fromParent, fromNextSibling = runningAnimation.fromNextSibling, wrapper = runningAnimation.wrapper, fromMatrix = runningAnimation.fromMatrix, toMatrix = runningAnimation.toMatrix;
                         allAnimationSettings = __assign(__assign({}, this.animationSettings), animationSettings);
                         finalAnimationSettings = __assign(__assign({}, allAnimationSettings), { parallelAnimations: __spreadArray([this.base.createBumpAnimation((_a = allAnimationSettings === null || allAnimationSettings === void 0 ? void 0 : allAnimationSettings.bump) !== null && _a !== void 0 ? _a : 1.2)], (_b = allAnimationSettings === null || allAnimationSettings === void 0 ? void 0 : allAnimationSettings.parallelAnimations) !== null && _b !== void 0 ? _b : [], true) });
-                        fromElement = element.parentElement;
-                        nextSibling = element.nextElementSibling;
-                        fromMatrix = this.base.getFullMatrix(element);
-                        this.base.attachToElement(element, toElement, insertBefore);
-                        toMatrix = this.base.getFullMatrix(element);
-                        wrapper = this.base.wrapOnAnimationSurface(element);
                         return [4 /*yield*/, Promise.all([
                                 this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', allAnimationSettings, insertBefore),
                                 this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, __assign({ easing: 'ease-in-out' }, finalAnimationSettings)),
-                                this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', allAnimationSettings, nextSibling),
+                                this.base.addAnimatedSpaceIfNecessary(element, fromParent, 'shrink', allAnimationSettings, fromNextSibling),
                             ])
                                 .then(function (results) {
-                                var _a, _b;
-                                // add before the filling space if it exists, else before the nextSibling
-                                _this.base.attachToElement(element, toElement, (_b = (_a = results[0]) === null || _a === void 0 ? void 0 : _a.animationWrapper) !== null && _b !== void 0 ? _b : insertBefore);
-                                results.forEach(function (result) { var _a; return (_a = result === null || result === void 0 ? void 0 : result.animationWrapper) === null || _a === void 0 ? void 0 : _a.remove(); });
+                                var _a;
+                                runningAnimation.toSpaceWrapper = results[0].animationWrapper;
+                                (_a = runningAnimation.wrappersToRemove).push.apply(_a, results.map(function (result) { return result.animationWrapper; }));
+                                _this.base.endRunningAnimation(runningAnimation);
                             })];
                     case 1:
                         _c.sent();
@@ -468,49 +534,99 @@ var AnimationManager = /** @class */ (function () {
         });
     };
     /**
-     * Slide an object to the screen center then an element.
+     * Play a list of animations then attach to an element.
      */
-    AnimationManager.prototype.slideToScreenCenterAndAttach = function (element, toElement, animationSettings, insertBefore) {
-        var _a, _b, _c, _d;
+    AnimationManager.prototype.sequenceAnimationsAttach = function (element, toElement, animations, animationSettings, insertBefore) {
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var firstAnimationSettings, secondAnimationSettings, fromElement, nextSibling, elementBR, centerScreenMatrix, fromMatrix, toMatrix, wrapper, toCenter, results;
+            var runningAnimation, index, currentAnimation, currentAnimationSettings, promises, results;
+            var _d;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
                         if (!this.game.bgaAnimationsActive()) {
                             this.base.attachToElement(element, toElement, insertBefore);
-                            return [2 /*return*/];
+                            return [2 /*return*/, null];
                         }
-                        if (Array.isArray(animationSettings) && animationSettings.length !== 2) {
-                            throw new Error('slideToScreenCenterAndAttach animationSettings array must be made of 2 elements');
+                        runningAnimation = this.base.startAttachAnimation(element, toElement, insertBefore);
+                        if (Array.isArray(animationSettings) && animationSettings.length !== animations.length) {
+                            throw new Error('slideToScreenCenterAndAttach animationSettings array must be made of as many elements as animations');
                         }
-                        firstAnimationSettings = Array.isArray(animationSettings) ? __assign(__assign({}, this.animationSettings), animationSettings[0]) : __assign(__assign({}, this.animationSettings), animationSettings);
-                        secondAnimationSettings = Array.isArray(animationSettings) ? __assign(__assign({}, this.animationSettings), animationSettings[1]) : __assign(__assign({}, this.animationSettings), animationSettings);
-                        fromElement = element.parentElement;
-                        nextSibling = element.nextElementSibling;
-                        elementBR = element.getBoundingClientRect();
-                        centerScreenMatrix = new DOMMatrix().translateSelf(window.scrollX + (window.innerWidth - elementBR.width) / 2, window.scrollY + (window.innerHeight - elementBR.height) / 2);
-                        fromMatrix = this.base.getFullMatrix(element);
-                        this.base.attachToElement(element, toElement, insertBefore);
-                        toMatrix = this.base.getFullMatrix(element);
-                        wrapper = this.base.wrapOnAnimationSurface(element);
-                        return [4 /*yield*/, Promise.all([
-                                this.base.animateOnAnimationSurface(wrapper, fromMatrix, centerScreenMatrix, firstAnimationSettings),
-                                this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', firstAnimationSettings, nextSibling),
-                            ])];
+                        index = 0;
+                        _e.label = 1;
                     case 1:
-                        toCenter = _e.sent();
-                        (_b = (_a = toCenter[1]) === null || _a === void 0 ? void 0 : _a.animationWrapper) === null || _b === void 0 ? void 0 : _b.remove();
-                        return [4 /*yield*/, Promise.all([
-                                this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', secondAnimationSettings, insertBefore),
-                                this.base.animateOnAnimationSurface(wrapper, centerScreenMatrix, toMatrix, secondAnimationSettings),
-                            ])];
+                        if (!(index < animations.length)) return [3 /*break*/, 4];
+                        currentAnimation = animations[index];
+                        currentAnimationSettings = Array.isArray(animationSettings) ? __assign(__assign({}, this.animationSettings), animationSettings[index]) : __assign(__assign({}, this.animationSettings), animationSettings);
+                        promises = [
+                            currentAnimation(runningAnimation, currentAnimationSettings),
+                        ];
+                        if (index === 0) { // shrinking animation
+                            promises.push(this.base.addAnimatedSpaceIfNecessary(element, runningAnimation.fromParent, 'shrink', currentAnimationSettings, runningAnimation.fromNextSibling));
+                        }
+                        if (index === animations.length - 1) {
+                            promises.push(this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', currentAnimationSettings, insertBefore));
+                        }
+                        return [4 /*yield*/, Promise.all(promises)];
                     case 2:
                         results = _e.sent();
-                        // add before the filling space if it exists, else before the nextSibling
-                        this.base.attachToElement(element, toElement, (_d = (_c = results[0]) === null || _c === void 0 ? void 0 : _c.animationWrapper) !== null && _d !== void 0 ? _d : insertBefore);
-                        results.forEach(function (result) { var _a; return (_a = result === null || result === void 0 ? void 0 : result.animationWrapper) === null || _a === void 0 ? void 0 : _a.remove(); });
+                        if (index === 0) { // remove shrinking animation
+                            (_b = (_a = results[1]) === null || _a === void 0 ? void 0 : _a.animationWrapper) === null || _b === void 0 ? void 0 : _b.remove();
+                        }
+                        if (index === animations.length - 1) {
+                            runningAnimation.toSpaceWrapper = (_c = results[animations.length - 1]) === null || _c === void 0 ? void 0 : _c.animationWrapper;
+                            (_d = runningAnimation.wrappersToRemove).push.apply(_d, results.map(function (result) { return result.animationWrapper; }));
+                        }
+                        runningAnimation = results[0];
+                        _e.label = 3;
+                    case 3:
+                        index++;
+                        return [3 /*break*/, 1];
+                    case 4:
+                        this.base.endRunningAnimation(runningAnimation);
                         return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Slide an object to the screen center then an element.
+     */
+    AnimationManager.prototype.slideToScreenCenterAndAttach = function (element, toElement, animationSettings, insertBefore) {
+        return __awaiter(this, void 0, void 0, function () {
+            var elementBR, centerScreenMatrix, toCenterScreen, toFinalPlace;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        elementBR = element.getBoundingClientRect();
+                        centerScreenMatrix = new DOMMatrix().translateSelf(window.scrollX + (window.innerWidth - elementBR.width) / 2, window.scrollY + (window.innerHeight - elementBR.height) / 2);
+                        toCenterScreen = function (runningAnimation, animationSettings) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, centerScreenMatrix, animationSettings)];
+                                    case 1:
+                                        _a.sent();
+                                        runningAnimation.fromMatrix = centerScreenMatrix;
+                                        return [2 /*return*/, runningAnimation];
+                                }
+                            });
+                        }); };
+                        toFinalPlace = function (runningAnimation, animationSettings) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, runningAnimation.toMatrix, animationSettings)];
+                                    case 1:
+                                        _a.sent();
+                                        return [2 /*return*/, runningAnimation];
+                                }
+                            });
+                        }); };
+                        return [4 /*yield*/, this.sequenceAnimationsAttach(element, toElement, [
+                                toCenterScreen,
+                                toFinalPlace,
+                            ], animationSettings, insertBefore)];
+                    case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -519,45 +635,39 @@ var AnimationManager = /** @class */ (function () {
      * Slide an object over an intermediate element then attach to an element.
      */
     AnimationManager.prototype.slideToElementAndAttach = function (element, overElement, toElement, animationSettings, insertBefore) {
-        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function () {
-            var firstAnimationSettings, secondAnimationSettings, fromElement, nextSibling, fromMatrix, toMatrix, wrapper, overElementMatrix, toCenter, results;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            var overElementMatrix, toCenterScreen, toFinalPlace;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        if (!this.game.bgaAnimationsActive()) {
-                            this.base.attachToElement(element, toElement, insertBefore);
-                            return [2 /*return*/];
-                        }
-                        if (Array.isArray(animationSettings) && animationSettings.length !== 2) {
-                            throw new Error('slideToScreenCenterAndAttach animationSettings array must be made of 2 elements');
-                        }
-                        firstAnimationSettings = Array.isArray(animationSettings) ? __assign(__assign({}, this.animationSettings), animationSettings[0]) : __assign(__assign({}, this.animationSettings), animationSettings);
-                        secondAnimationSettings = Array.isArray(animationSettings) ? __assign(__assign({}, this.animationSettings), animationSettings[1]) : __assign(__assign({}, this.animationSettings), animationSettings);
-                        fromElement = element.parentElement;
-                        nextSibling = element.nextElementSibling;
-                        fromMatrix = this.base.getFullMatrix(element);
-                        this.base.attachToElement(element, toElement, insertBefore);
-                        toMatrix = this.base.getFullMatrix(element);
-                        wrapper = this.base.wrapOnAnimationSurface(element);
                         overElementMatrix = this.base.getFullMatrixFromElementCenter(overElement);
-                        return [4 /*yield*/, Promise.all([
-                                this.base.animateOnAnimationSurface(wrapper, fromMatrix, overElementMatrix, firstAnimationSettings),
-                                this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', firstAnimationSettings, nextSibling),
-                            ])];
-                    case 1:
-                        toCenter = _e.sent();
-                        (_b = (_a = toCenter[1]) === null || _a === void 0 ? void 0 : _a.animationWrapper) === null || _b === void 0 ? void 0 : _b.remove();
-                        return [4 /*yield*/, Promise.all([
-                                this.base.addAnimatedSpaceIfNecessary(element, toElement, 'grow', secondAnimationSettings, insertBefore),
-                                this.base.animateOnAnimationSurface(wrapper, overElementMatrix, toMatrix, secondAnimationSettings),
-                            ])];
-                    case 2:
-                        results = _e.sent();
-                        // add before the filling space if it exists, else before the nextSibling
-                        this.base.attachToElement(element, toElement, (_d = (_c = results[0]) === null || _c === void 0 ? void 0 : _c.animationWrapper) !== null && _d !== void 0 ? _d : insertBefore);
-                        results.forEach(function (result) { var _a; return (_a = result === null || result === void 0 ? void 0 : result.animationWrapper) === null || _a === void 0 ? void 0 : _a.remove(); });
-                        return [2 /*return*/];
+                        toCenterScreen = function (runningAnimation, animationSettings) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, overElementMatrix, animationSettings)];
+                                    case 1:
+                                        _a.sent();
+                                        runningAnimation.fromMatrix = overElementMatrix;
+                                        return [2 /*return*/, runningAnimation];
+                                }
+                            });
+                        }); };
+                        toFinalPlace = function (runningAnimation, animationSettings) { return __awaiter(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, runningAnimation.toMatrix, animationSettings)];
+                                    case 1:
+                                        _a.sent();
+                                        return [2 /*return*/, runningAnimation];
+                                }
+                            });
+                        }); };
+                        return [4 /*yield*/, this.sequenceAnimationsAttach(element, toElement, [
+                                toCenterScreen,
+                                toFinalPlace,
+                            ], animationSettings, insertBefore)];
+                    case 1: return [2 /*return*/, _a.sent()];
                 }
             });
         });
@@ -568,7 +678,7 @@ var AnimationManager = /** @class */ (function () {
     AnimationManager.prototype.slideIn = function (element, fromElement, animationSettings) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var allAnimationSettings, parentElement, nextSibling, elementMatrix, wrapper, fromMatrix, promises;
+            var runningAnimation, toParent, toNextSibling, wrapper, fromMatrix, toMatrix, allAnimationSettings, promises;
             var _this = this;
             return __generator(this, function (_c) {
                 switch (_c.label) {
@@ -576,24 +686,19 @@ var AnimationManager = /** @class */ (function () {
                         if (!this.game.bgaAnimationsActive()) {
                             return [2 /*return*/];
                         }
+                        runningAnimation = this.base.startSlideInAnimation(element, fromElement, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : true, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true);
+                        toParent = runningAnimation.toParent, toNextSibling = runningAnimation.toNextSibling, wrapper = runningAnimation.wrapper, fromMatrix = runningAnimation.fromMatrix, toMatrix = runningAnimation.toMatrix;
                         allAnimationSettings = __assign(__assign({}, this.animationSettings), animationSettings);
-                        parentElement = element.parentElement;
-                        nextSibling = element.nextElementSibling;
-                        elementMatrix = this.base.getFullMatrix(element);
-                        wrapper = this.base.wrapOnAnimationSurface(element);
-                        fromMatrix = fromElement ?
-                            this.base.getFullMatrixFromElementCenter(fromElement, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : false, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true)
-                            : elementMatrix;
                         promises = [
-                            this.base.addAnimatedSpaceIfNecessary(element, parentElement, 'grow', allAnimationSettings, nextSibling),
-                            this.base.animateOnAnimationSurface(wrapper, fromMatrix, elementMatrix, __assign({ easing: 'ease-out' }, allAnimationSettings)),
+                            this.base.addAnimatedSpaceIfNecessary(element, toParent, 'grow', allAnimationSettings, toNextSibling),
+                            this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, __assign({ easing: 'ease-out' }, allAnimationSettings)),
                         ];
                         return [4 /*yield*/, Promise.all(promises)
                                 .then(function (results) {
-                                var _a, _b;
-                                // add before the filling space if it exists, else before the nextSibling
-                                _this.base.attachToElement(element, parentElement, (_b = (_a = results[0]) === null || _a === void 0 ? void 0 : _a.animationWrapper) !== null && _b !== void 0 ? _b : nextSibling);
-                                results.forEach(function (result) { var _a; return (_a = result === null || result === void 0 ? void 0 : result.animationWrapper) === null || _a === void 0 ? void 0 : _a.remove(); });
+                                var _a;
+                                runningAnimation.toSpaceWrapper = results[0].animationWrapper;
+                                (_a = runningAnimation.wrappersToRemove).push.apply(_a, results.map(function (result) { return result.animationWrapper; }));
+                                _this.base.endRunningAnimation(runningAnimation);
                             })];
                     case 1:
                         _c.sent();
@@ -631,7 +736,8 @@ var AnimationManager = /** @class */ (function () {
     AnimationManager.prototype.fadeOutAndDestroy = function (element, toElement, animationSettings) {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var allAnimationSettings, finalAnimationSettings, fromElement, nextSibling, fromMatrix, wrapper, toMatrix;
+            var allAnimationSettings, finalAnimationSettings, runningAnimation, wrapper, fromMatrix, toMatrix;
+            var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -641,19 +747,18 @@ var AnimationManager = /** @class */ (function () {
                         }
                         allAnimationSettings = __assign(__assign({}, this.animationSettings), animationSettings);
                         finalAnimationSettings = __assign(__assign({}, allAnimationSettings), { parallelAnimations: __spreadArray([this.base.createFadeAnimation('out')], (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.parallelAnimations) !== null && _a !== void 0 ? _a : [], true) });
-                        fromElement = element.parentElement;
-                        nextSibling = element.nextElementSibling;
-                        fromMatrix = this.base.getFullMatrix(element);
-                        wrapper = this.base.wrapOnAnimationSurface(element);
-                        wrapper.style.transform = fromMatrix.toString();
-                        toMatrix = toElement ? this.base.getFullMatrix(toElement) : fromMatrix;
+                        runningAnimation = this.base.startSlideOutAnimation(element, toElement, false, false);
+                        wrapper = runningAnimation.wrapper, fromMatrix = runningAnimation.fromMatrix, toMatrix = runningAnimation.toMatrix;
                         return [4 /*yield*/, Promise.all([
-                                this.base.addAnimatedSpaceIfNecessary(element, fromElement, 'shrink', animationSettings, nextSibling),
+                                this.base.addAnimatedSpaceIfNecessary(element, runningAnimation.fromParent, 'shrink', animationSettings, runningAnimation.fromNextSibling),
                                 this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, __assign(__assign({ easing: 'ease-in' }, this.animationSettings), finalAnimationSettings)),
                             ])
                                 .then(function (results) {
+                                var _a;
                                 element.remove();
-                                results.forEach(function (result) { var _a; return (_a = result === null || result === void 0 ? void 0 : result.animationWrapper) === null || _a === void 0 ? void 0 : _a.remove(); });
+                                runningAnimation.element = null;
+                                (_a = runningAnimation.wrappersToRemove).push.apply(_a, results.map(function (result) { return result.animationWrapper; }));
+                                _this.base.endRunningAnimation(runningAnimation);
                             })];
                     case 1:
                         _b.sent();
@@ -706,12 +811,30 @@ var AnimationManager = /** @class */ (function () {
             });
         });
     };
+    /**
+     * Play multiple animations a the same time.
+     *
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     AnimationManager.prototype.playParallel = function (animations) {
         return Promise.all(animations.map(function (animation, index) { return animation(index); }));
     };
+    /**
+     * Play multiple animations one after the other.
+     *
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     AnimationManager.prototype.playSequentially = function (animations) {
         return animations.reduce(function (prevPromise, animation) { return prevPromise.then(function () { return animation(); }); }, Promise.resolve());
     };
+    /**
+     * Play multiple animations with a fixed interval between each animation.
+     *
+     * @param animations functions generating an animation, returning a Promise.
+     * @returns promise when all animations ends
+     */
     AnimationManager.prototype.playInterval = function (animations, interval) {
         if (interval === void 0) { interval = this.animationSettings.duration / 4; }
         return new Promise(function (resolve) {
