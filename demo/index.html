@@ -23,6 +23,9 @@
                 <option value="from">from</option>
                 <option value="to">to</option>
             </select>
+            -
+            <input id="showAnimationDetails" type="checkbox" onclick="document.body.classList.toggle('show-animation-details', this.checked);">
+            <label for="showAnimationDetails">Show animation details</label>
         </div>
         <div class="control-blocks">
             <fieldset>
@@ -54,6 +57,7 @@
                 <div>
                     <button onclick="fadeOutAndDestroy()">Fade out and destroy</button>
                     <button onclick="fadeOutAndDestroyTo()">Fade out (to the void) and destroy</button>
+                    <button onclick="slideOutAndDestroyTo()">Slide out (to the void) and destroy</button>
                 </div>
             </fieldset>
             <fieldset>

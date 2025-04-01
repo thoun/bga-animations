@@ -232,19 +232,15 @@ class AnimationManager {
     }
 
     /**
-     * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
+     * slide out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
-    public async fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
+    public async slideOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
             element.remove();
             return;
         }
 
-        const allAnimationSettings = { ...this.animationSettings, ...animationSettings };
-        const finalAnimationSettings: SlideAnimationSettings = {
-            ...allAnimationSettings,
-            parallelAnimations: [this.base.createFadeAnimation('out'), ...animationSettings?.parallelAnimations ?? []],
-        }
+        const finalAnimationSettings = { ...this.animationSettings, ...animationSettings };
 
         const runningAnimation = this.base.startSlideOutAnimation(
             element, 
@@ -265,6 +261,24 @@ class AnimationManager {
             runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
             this.base.endRunningAnimation(runningAnimation);
         });
+    }
+
+    /**
+     * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
+     */
+    public async fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
+        if (!this.game.bgaAnimationsActive()) {
+            element.remove();
+            return;
+        }
+
+        const allAnimationSettings = { ...this.animationSettings, ...animationSettings };
+        const finalAnimationSettings: SlideAnimationSettings = {
+            ...allAnimationSettings,
+            parallelAnimations: [this.base.createFadeAnimation('out'), ...animationSettings?.parallelAnimations ?? []],
+        }
+
+        await this.slideOutAndDestroy(element, toElement, finalAnimationSettings);
     }
 
     /**

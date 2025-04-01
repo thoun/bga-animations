@@ -585,18 +585,17 @@ class AnimationManager {
         });
     }
     /**
-     * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
+     * slide out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
-    fadeOutAndDestroy(element, toElement, animationSettings) {
-        var _a, _b, _c, _d;
+    slideOutAndDestroy(element, toElement, animationSettings) {
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.game.bgaAnimationsActive()) {
                 element.remove();
                 return;
             }
-            const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
-            const finalAnimationSettings = Object.assign(Object.assign({}, allAnimationSettings), { parallelAnimations: [this.base.createFadeAnimation('out'), ...(_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.parallelAnimations) !== null && _a !== void 0 ? _a : []] });
-            const runningAnimation = this.base.startSlideOutAnimation(element, toElement, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _b !== void 0 ? _b : false, (_c = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _c !== void 0 ? _c : false, (_d = animationSettings.preserveScale) !== null && _d !== void 0 ? _d : true);
+            const finalAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
+            const runningAnimation = this.base.startSlideOutAnimation(element, toElement, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : false, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : false, (_c = animationSettings.preserveScale) !== null && _c !== void 0 ? _c : true);
             const { wrapper, fromMatrix, toMatrix } = runningAnimation;
             yield Promise.all([
                 this.base.addAnimatedSpaceIfNecessary(element, runningAnimation.fromParent, 'shrink', animationSettings, runningAnimation.fromNextSibling),
@@ -608,6 +607,21 @@ class AnimationManager {
                 runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
                 this.base.endRunningAnimation(runningAnimation);
             });
+        });
+    }
+    /**
+     * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
+     */
+    fadeOutAndDestroy(element, toElement, animationSettings) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.game.bgaAnimationsActive()) {
+                element.remove();
+                return;
+            }
+            const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
+            const finalAnimationSettings = Object.assign(Object.assign({}, allAnimationSettings), { parallelAnimations: [this.base.createFadeAnimation('out'), ...(_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.parallelAnimations) !== null && _a !== void 0 ? _a : []] });
+            yield this.slideOutAndDestroy(element, toElement, finalAnimationSettings);
         });
     }
     /**

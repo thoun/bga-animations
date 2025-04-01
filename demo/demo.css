@@ -64,13 +64,13 @@ h1, h2 {
     left: 0;
 }
 
-.bga-animations_filling-space-grow {
+.show-animation-details .bga-animations_filling-space-grow {
     background: #00FF0033;
 }
-.bga-animations_filling-space-shrink {
+.show-animation-details .bga-animations_filling-space-shrink {
     background: #FF000033;
 }
-.bga-animations_animation-wrapper {
+.show-animation-details .bga-animations_animation-wrapper {
     outline: 2px dotted purple;
 }
 

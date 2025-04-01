@@ -328,6 +328,24 @@ async function fadeOutAndDestroyTo() {
 }
 
 /**
+ * Remove the moved element with a slide out effect, going from the center a a defined div.
+ */
+async function slideOutAndDestroyTo() {
+    const voidDiv = document.getElementById('the-void');
+
+    lines.forEach(async (line, index) => { 
+        const element = getElement(index);
+        await animationManager.slideOutAndDestroy(element, voidDiv, animationSettings);
+
+        // recreate the piece
+        await game.wait(1500);
+        const toElement = getToElement(index);
+        const movingPiece = createMovingPiece(index, line);
+        toElement.appendChild(movingPiece);
+    });
+}
+
+/**
  * Create a coin div to animate as a temporary piece (for example for scoring animation).
  */
 function createCoin() {

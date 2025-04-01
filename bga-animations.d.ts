@@ -134,6 +134,10 @@ declare class AnimationManager {
      */
     fadeIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
     /**
+     * slide out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
+     */
+    slideOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
+    /**
      * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
     fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
