@@ -300,19 +300,19 @@ class AnimationManager {
         scoreElement.innerText = message;
         scoreElement.style.setProperty('--color', `#${color}`);
 
-        const parallelAnimations = [
-            {
-                keyframes: [
-                    { transform: 'scale(0)', offset: 0 },
-                    { transform: 'scale(3) rotate(-360deg)' , offset: 0.1 },
-                    { transform: 'scale(3) rotate(-360deg)' , offset: 0.9 },
-                    { transform: 'scale(0)', offset: 1 },
-                ]
-            }
-        ];
+        const zoomInOutAnimation = {
+            keyframes: [
+                { transform: 'scale(0) rotate(360deg)', offset: 0 },
+                { transform: 'scale(1)' , offset: 0.1 },
+                { transform: 'scale(1)' , offset: 0.9 },
+                { transform: 'scale(0) rotate(360deg)', offset: 1 },
+            ]
+        };
 
-        await this.addFloatingElement(scoreElement, toElement, { ...animationSettings, 
-            parallelAnimations,
+        await this.addFloatingElement(scoreElement, toElement, {
+            duration: 2000,
+            ...animationSettings, 
+            parallelAnimations: [zoomInOutAnimation, ...(animationSettings?.parallelAnimations ?? [])],
         });
     }
 

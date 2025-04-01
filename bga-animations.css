@@ -24,7 +24,7 @@
 /* Scoring */
 .bga-animations_floating-message {
   --color: black;
-  font-size: 1em;
+  font-size: 3em;
   font-weight: bold;
   color: var(--color);
   position: absolute;

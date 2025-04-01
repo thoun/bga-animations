@@ -5,7 +5,8 @@
 
 # Concept
 ## AnimationManager
-The AnimationManager will store the global settings and manage all stuff common to all animations
+The AnimationManager will store the global settings and offer various types of animations.
+The BaseAnimationManager (animationManager.base) has smaller functions, allowing to build custom animations.
 
 # Integration
 ## On standard BGA project
@@ -14,14 +15,17 @@ Then you can include the module on your game :
 
 JS file:
 ```js
-define([
-   "dojo","dojo/_base/declare",
-   "dojo/debounce",
-   "ebg/core/gamegui",
-   /*...,*/
-   g_gamethemeurl + "modules/bga-animations.js",
-],
-function (dojo, declare, debounce, gamegui, /*...,*/ bgaCards) {
+loadBgaGameLib('bga-animations', '0.x');
+
+/* ... */
+
+    constructor: function() {
+
+        // create the animation manager
+        this.animationManager = new AnimationManager(this);
+
+        // ...
+    },
 ```
 
 See [examples](./EXAMPLES.md) to see how to create a manager to call animations functions.

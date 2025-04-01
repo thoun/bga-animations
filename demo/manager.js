@@ -11,6 +11,8 @@ const floatingPieceAnimationSettings = {
     ignoreRotation: true,
 };
 
+const PLAYER_COLORS = ['ff0000', '008000', '0000ff', 'ffa500', '000000', 'e94190', '982fff', '72c3b1', 'f07f16', 'bdd002', '7b7b7b'];
+
 /**
  * Simulate the game class.
  */
@@ -186,7 +188,7 @@ function getToElement(i) {
  * Slide the moved element to the opposite container.
  * Apply a parallel animation if some has been specified in the Select.
  */
-function slideAll() {
+async function slideAll() {
     const effect = document.getElementById('slideAll-effect').value;
     const parallelAnimations = [];
     if (effect === 'blink') {
@@ -206,17 +208,17 @@ function slideAll() {
             ]
         })
     }
-    lines.forEach((lines, index) => {
+    await Promise.all(lines.map(async (lines, index) => {
         const element = getElement(index);
         const toElement = getToElement(index);
-        animationManager.slideAndAttach(element, toElement, { ...animationSettings, parallelAnimations }, toElement.id.includes('to') ? toElement.lastChild : undefined);
-    });
+        await animationManager.slideAndAttach(element, toElement, { ...animationSettings, parallelAnimations }, toElement.id.includes('to') ? toElement.lastChild : undefined);
+    }));
 }
 
 /**
  * Slide the moved element to the screen center, and then to the opposite container.
  */
-function slideAllScreenCenter() {
+async function slideAllScreenCenter() {
     lines.forEach((lines, index) => { 
         const element = getElement(index);
         const toElement = getToElement(index);
@@ -227,7 +229,7 @@ function slideAllScreenCenter() {
 /**
  * Slide the moved element oven the void, and then to the opposite container.
  */
-function slideAllVoid() {
+async function slideAllVoid() {
     const voidDiv = document.getElementById('the-void');
 
     lines.forEach((lines, index) => { 
@@ -240,7 +242,7 @@ function slideAllVoid() {
 /**
  * Slide the moved element to the screen center, and then to the opposite container.
  */
-function slideAllCustomFunction() {
+async function slideAllCustomFunction() {
     lines.forEach((lines, index) => { 
         const element = getElement(index);
         const toElement = getToElement(index);
@@ -248,7 +250,7 @@ function slideAllCustomFunction() {
     });
 }
 
-function swap() {
+async function swap() {
     lines.forEach((lines, index) => {
         const elements = ['from', 'to'].map(side => document.getElementById(`${side}${index}`).firstElementChild);
         animationManager.swap(elements, animationSettings);
@@ -258,7 +260,7 @@ function swap() {
 /**
  * Add the moved element with a fade in effect.
  */
-function fadeIn() {
+async function fadeIn() {
     lines.forEach(async (line, index) => { 
         // delete the piece from the dom
         const element = getElement(index);
@@ -270,7 +272,7 @@ function fadeIn() {
 /**
  * Add the moved element with a fade in effect, starting from the center a a defined div.
  */
-function fadeInFrom() {
+async function fadeInFrom() {
     const voidDiv = document.getElementById('the-void');
 
     lines.forEach(async (line, index) => { 
@@ -283,7 +285,7 @@ function fadeInFrom() {
 /**
  * Add the moved element with a slide in effect, starting from the center a a defined div (same as fadeInFrom, without the fade effect).
  */
-function slideInFrom() {
+async function slideInFrom() {
     const voidDiv = document.getElementById('the-void');
 
     lines.forEach(async (line, index) => { 
@@ -296,7 +298,7 @@ function slideInFrom() {
 /**
  * Remove the moved element with a fade out effect.
  */
-function fadeOutAndDestroy() {
+async function fadeOutAndDestroy() {
     lines.forEach(async (line, index) => { 
         const element = getElement(index);
         await animationManager.fadeOutAndDestroy(element, null, animationSettings);
@@ -312,7 +314,7 @@ function fadeOutAndDestroy() {
 /**
  * Remove the moved element with a fade out effect, going from the center a a defined div.
  */
-function fadeOutAndDestroyTo() {
+async function fadeOutAndDestroyTo() {
     const voidDiv = document.getElementById('the-void');
 
     lines.forEach(async (line, index) => { 
@@ -342,7 +344,7 @@ function createCoin() {
  * Add a temporary element displayed on top of a moving box.
  * Apply a parallel animation if some has been specified in the Select.
  */
-function addFloatingPiece() {
+async function addFloatingPiece() {
     const effect = document.getElementById('addFloatingPiece-effect').value;
     const parallelAnimations = [];
     if (effect === 'slideUpAndFadeOut') {
@@ -373,7 +375,7 @@ function addFloatingPiece() {
 /**
  * Add a temporary element, that slides between the 2 containers.
  */
-function slideFloatingElement() {
+async function slideFloatingElement() {
     lines.forEach(async (line, index) => { 
         const coin = createCoin();
         const fromElement = document.getElementById(`to${index}`).lastElementChild;
@@ -386,7 +388,7 @@ function slideFloatingElement() {
  * Add multiple temporary elements, that slides between the 2 containers.
  * Apply the animation ordering specified in the Select.
  */
-function slideFloatingElements() {
+async function slideFloatingElements() {
     const spacing = document.getElementById('slideFloatingElements-spacing').value;
     const elementCount = 5;
 
@@ -409,10 +411,10 @@ function slideFloatingElements() {
 /**
  * Add a temporary element, showing a message related to that element.
  */
-function displayMessage() {
+async function displayMessage() {
     lines.forEach(async (line, index) => { 
         const toElement = getElement(index);
-        const color = '00AA00';
+        const color = PLAYER_COLORS[index];
         const message = 'Good! 🎉';
         await animationManager.displayMessage(toElement, message, color, floatingPieceAnimationSettings);
     });
@@ -421,13 +423,28 @@ function displayMessage() {
 /**
  * Add a temporary element, showing the score related to that element.
  */
-function displayScoring() {
+async function displayScoring() {
     lines.forEach(async (line, index) => { 
         const toElement = getElement(index);
-        const color = '00AA00';
+        const color = PLAYER_COLORS[index];
         const score = index - 4;
         await animationManager.displayScoring(toElement, score, color, floatingPieceAnimationSettings);
     });
+}
+
+/**
+ * Slide all at the same time, then show the scores one by one.
+ */
+async function attachAndDisplayScoring() {
+    await slideAll();
+    await game.wait(300);
+    await animationManager.playSequentially(lines.map((line, index) => {
+        const element = getElement(index);
+        const color = PLAYER_COLORS[index];
+        const score = index + 1;
+        return () => animationManager.displayScoring(element, score, color, { ...floatingPieceAnimationSettings, duration: 1000 });
+    }));
+
 }
 
 /**
