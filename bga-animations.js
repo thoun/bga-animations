@@ -167,6 +167,9 @@ class BaseAnimationManager {
             (['all', 'to'].includes((_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.fillingSpaces) !== null && _b !== void 0 ? _b : 'all') && type === 'grow')) {
             return this.addAnimatedSpace(element, parent, type, animationSettings, insertBefore);
         }
+        else {
+            return Promise.resolve(null);
+        }
     }
     /**
      * Returns the average of 2 matrixes.
@@ -198,6 +201,11 @@ class BaseAnimationManager {
         averagedMatrix.e = avgTranslateX;
         averagedMatrix.f = avgTranslateY;
         return averagedMatrix;
+    }
+    applyMatrixScale(matrix, scaleMatrix) {
+        matrix.a = scaleMatrix.a; // Scale X
+        matrix.d = scaleMatrix.d; // Scale Y
+        return matrix;
     }
     /**
      * Add a wrapper around an element, and add the elment on that wrapper.
@@ -241,7 +249,7 @@ class BaseAnimationManager {
         return element;
     }
     /**
-     * Creates a bump animation, that simulates a piece being lifted from one place to another.
+     * Creates a bump animation, that simulates a physical item being lifted from one place to another.
      */
     createBumpAnimation(bump) {
         if (bump === null || bump === 1) {
@@ -308,13 +316,16 @@ class BaseAnimationManager {
             insertBefore;
         }
     }
-    startSlideInAnimation(element, fromElement, fromIgnoreScale = true, fromIgnoreRotation = true) {
+    startSlideInAnimation(element, fromElement, fromIgnoreScale = true, fromIgnoreRotation = true, preserveScale = true) {
         const toParent = element.parentElement;
         const toNextSibling = element.nextElementSibling;
         const toMatrix = this.getFullMatrix(element);
-        const fromMatrix = fromElement ?
+        let fromMatrix = fromElement ?
             this.getFullMatrixFromElementCenter(fromElement, fromIgnoreScale, fromIgnoreRotation)
             : toMatrix;
+        if (preserveScale) {
+            fromMatrix = this.applyMatrixScale(fromMatrix, toMatrix);
+        }
         const wrapper = this.wrapOnAnimationSurface(element);
         return {
             element,
@@ -327,13 +338,16 @@ class BaseAnimationManager {
             wrappersToRemove: [wrapper],
         };
     }
-    startSlideOutAnimation(element, toElement, fromIgnoreScale = true, fromIgnoreRotation = true) {
+    startSlideOutAnimation(element, toElement, fromIgnoreScale = true, fromIgnoreRotation = true, preserveScale = true) {
         const fromParent = element.parentElement;
         const fromNextSibling = element.nextElementSibling;
         const fromMatrix = this.getFullMatrix(element);
-        const toMatrix = toElement ?
+        let toMatrix = toElement ?
             this.getFullMatrixFromElementCenter(toElement, fromIgnoreScale, fromIgnoreRotation)
             : fromMatrix;
+        if (preserveScale) {
+            toMatrix = this.applyMatrixScale(toMatrix, fromMatrix);
+        }
         const wrapper = this.wrapOnAnimationSurface(element);
         return {
             element,
@@ -410,8 +424,9 @@ class AnimationManager {
                 this.base.addAnimatedSpaceIfNecessary(element, fromParent, 'shrink', allAnimationSettings, fromNextSibling),
             ])
                 .then(results => {
-                runningAnimation.toSpaceWrapper = results[0].animationWrapper;
-                runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+                var _a;
+                runningAnimation.toSpaceWrapper = (_a = results[0]) === null || _a === void 0 ? void 0 : _a.animationWrapper;
+                runningAnimation.wrappersToRemove.push(...results.map(result => result === null || result === void 0 ? void 0 : result.animationWrapper));
                 this.base.endRunningAnimation(runningAnimation);
             });
         });
@@ -480,7 +495,7 @@ class AnimationManager {
                 }
                 if (index === animations.length - 1) {
                     runningAnimation.toSpaceWrapper = (_c = results[animations.length - 1]) === null || _c === void 0 ? void 0 : _c.animationWrapper;
-                    runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+                    runningAnimation.wrappersToRemove.push(...results.map(result => result === null || result === void 0 ? void 0 : result.animationWrapper));
                 }
                 runningAnimation = results[0];
             }
@@ -534,22 +549,23 @@ class AnimationManager {
      * Slide an object in. The object must be attached to the destination before.
      */
     slideIn(element, fromElement, animationSettings) {
-        var _a, _b;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.game.bgaAnimationsActive()) {
                 return;
             }
-            const runningAnimation = this.base.startSlideInAnimation(element, fromElement, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : true, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true);
-            const { toParent, toNextSibling, wrapper, fromMatrix, toMatrix } = runningAnimation;
             const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
+            const runningAnimation = this.base.startSlideInAnimation(element, fromElement, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : true, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true, (_c = allAnimationSettings.preserveScale) !== null && _c !== void 0 ? _c : true);
+            const { toParent, toNextSibling, wrapper, fromMatrix, toMatrix } = runningAnimation;
             const promises = [
                 this.base.addAnimatedSpaceIfNecessary(element, toParent, 'grow', allAnimationSettings, toNextSibling),
                 this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, Object.assign({ easing: 'ease-out' }, allAnimationSettings)),
             ];
             yield Promise.all(promises)
                 .then(results => {
-                runningAnimation.toSpaceWrapper = results[0].animationWrapper;
-                runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+                var _a;
+                runningAnimation.toSpaceWrapper = (_a = results[0]) === null || _a === void 0 ? void 0 : _a.animationWrapper;
+                runningAnimation.wrappersToRemove.push(...results.map(result => result === null || result === void 0 ? void 0 : result.animationWrapper));
                 this.base.endRunningAnimation(runningAnimation);
             });
         });
@@ -569,10 +585,10 @@ class AnimationManager {
         });
     }
     /**
-     * Fade out an object and destroy it. It call be called with a toElment, in that case a slide animation will be triggered.
+     * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
     fadeOutAndDestroy(element, toElement, animationSettings) {
-        var _a;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.game.bgaAnimationsActive()) {
                 element.remove();
@@ -580,7 +596,7 @@ class AnimationManager {
             }
             const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
             const finalAnimationSettings = Object.assign(Object.assign({}, allAnimationSettings), { parallelAnimations: [this.base.createFadeAnimation('out'), ...(_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.parallelAnimations) !== null && _a !== void 0 ? _a : []] });
-            const runningAnimation = this.base.startSlideOutAnimation(element, toElement, false, false);
+            const runningAnimation = this.base.startSlideOutAnimation(element, toElement, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _b !== void 0 ? _b : false, (_c = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _c !== void 0 ? _c : false, (_d = animationSettings.preserveScale) !== null && _d !== void 0 ? _d : true);
             const { wrapper, fromMatrix, toMatrix } = runningAnimation;
             yield Promise.all([
                 this.base.addAnimatedSpaceIfNecessary(element, runningAnimation.fromParent, 'shrink', animationSettings, runningAnimation.fromNextSibling),
@@ -598,7 +614,7 @@ class AnimationManager {
      * Add a floating element over another element.
      */
     slideFloatingElement(element, fromElement, toElement, animationSettings) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.game.bgaAnimationsActive()) {
                 return;
@@ -610,6 +626,10 @@ class AnimationManager {
             const fromMatrix = fromElement ?
                 this.base.getFullMatrixFromElementCenter(fromElement, (_c = allAnimationSettings.ignoreScale) !== null && _c !== void 0 ? _c : true, (_d = allAnimationSettings.ignoreRotation) !== null && _d !== void 0 ? _d : true) :
                 toMatrix;
+            if ((_e = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.scale) !== null && _e !== void 0 ? _e : 1 !== 1) {
+                toMatrix.scaleSelf(animationSettings.scale, animationSettings.scale);
+                fromMatrix.scaleSelf(animationSettings.scale, animationSettings.scale);
+            }
             const promises = [
                 this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, Object.assign({ easing: 'ease-out' }, allAnimationSettings)),
             ];

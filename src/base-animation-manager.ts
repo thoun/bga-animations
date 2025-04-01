@@ -194,6 +194,8 @@ class BaseAnimationManager {
             (['all', 'to'].includes(animationSettings?.fillingSpaces ?? 'all') && type === 'grow')
         ) {
             return this.addAnimatedSpace(element, parent, type, animationSettings, insertBefore);
+        } else {
+            return Promise.resolve(null);
         }
     }
 
@@ -234,6 +236,11 @@ class BaseAnimationManager {
         return averagedMatrix;
     }
 
+    private applyMatrixScale(matrix: DOMMatrix, scaleMatrix: DOMMatrix): DOMMatrix {
+        matrix.a = scaleMatrix.a; // Scale X
+        matrix.d = scaleMatrix.d; // Scale Y
+        return matrix;
+    }
     /**
      * Add a wrapper around an element, and add the elment on that wrapper.
      * Needed before doing animations on the surface
@@ -283,7 +290,7 @@ class BaseAnimationManager {
     }
 
     /**
-     * Creates a bump animation, that simulates a piece being lifted from one place to another.
+     * Creates a bump animation, that simulates a physical item being lifted from one place to another.
      */
     public createBumpAnimation(bump: number | null | undefined): ParallelAnimation | null {
         if (bump === null || bump === 1) {
@@ -363,13 +370,17 @@ class BaseAnimationManager {
         }
     }
 
-    public startSlideInAnimation(element: HTMLElement, fromElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true): RunningAnimation | null {
+    public startSlideInAnimation(element: HTMLElement, fromElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true, preserveScale: boolean = true): RunningAnimation | null {
         const toParent = element.parentElement;
         const toNextSibling = element.nextElementSibling;  
         const toMatrix = this.getFullMatrix(element);      
-        const fromMatrix = fromElement ? 
+        let fromMatrix = fromElement ? 
             this.getFullMatrixFromElementCenter(fromElement, fromIgnoreScale, fromIgnoreRotation)
             : toMatrix;
+        if (preserveScale) {
+            fromMatrix = this.applyMatrixScale(fromMatrix, toMatrix);
+        }
+
         const wrapper = this.wrapOnAnimationSurface(element);
 
         return <RunningAnimation>{
@@ -384,13 +395,16 @@ class BaseAnimationManager {
         };
     }
 
-    public startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true): RunningAnimation | null {
+    public startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true, preserveScale: boolean = true): RunningAnimation | null {
         const fromParent = element.parentElement;
         const fromNextSibling = element.nextElementSibling;  
         const fromMatrix = this.getFullMatrix(element);      
-        const toMatrix = toElement ? 
+        let toMatrix = toElement ? 
             this.getFullMatrixFromElementCenter(toElement, fromIgnoreScale, fromIgnoreRotation)
             : fromMatrix;
+        if (preserveScale) {
+            toMatrix = this.applyMatrixScale(toMatrix, fromMatrix);
+        }
         const wrapper = this.wrapOnAnimationSurface(element);
 
         return <RunningAnimation>{

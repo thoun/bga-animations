@@ -60,6 +60,7 @@ declare class BaseAnimationManager {
      * Returns the average of 2 matrixes.
      */
     private averageDOMMatrix;
+    private applyMatrixScale;
     /**
      * Add a wrapper around an element, and add the elment on that wrapper.
      * Needed before doing animations on the surface
@@ -75,7 +76,7 @@ declare class BaseAnimationManager {
      */
     private getElementInWrapper;
     /**
-     * Creates a bump animation, that simulates a piece being lifted from one place to another.
+     * Creates a bump animation, that simulates a physical item being lifted from one place to another.
      */
     createBumpAnimation(bump: number | null | undefined): ParallelAnimation | null;
     /**
@@ -90,8 +91,8 @@ declare class BaseAnimationManager {
      * Attach an element to a new parent.
      */
     attachToElement(element: HTMLElement, toElement: HTMLElement, insertBefore?: Element): void;
-    startSlideInAnimation(element: HTMLElement, fromElement?: HTMLElement, fromIgnoreScale?: boolean, fromIgnoreRotation?: boolean): RunningAnimation | null;
-    startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale?: boolean, fromIgnoreRotation?: boolean): RunningAnimation | null;
+    startSlideInAnimation(element: HTMLElement, fromElement?: HTMLElement, fromIgnoreScale?: boolean, fromIgnoreRotation?: boolean, preserveScale?: boolean): RunningAnimation | null;
+    startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale?: boolean, fromIgnoreRotation?: boolean, preserveScale?: boolean): RunningAnimation | null;
     startAttachAnimation(element: HTMLElement, toElement: HTMLElement, insertBefore?: HTMLElement): RunningAnimation | null;
     endRunningAnimation(attachAnimation: RunningAnimation): void;
 }
@@ -127,32 +128,32 @@ declare class AnimationManager {
     /**
      * Slide an object in. The object must be attached to the destination before.
      */
-    slideIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
+    slideIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
     /**
      * Fade an object in. The object must be attached to the destination before.
      */
-    fadeIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: AnimationSettings): Promise<any>;
+    fadeIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
     /**
-     * Fade out an object and destroy it. It call be called with a toElment, in that case a slide animation will be triggered.
+     * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
-    fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: AnimationSettings): Promise<any>;
-    /**
-     * Add a floating element over another element.
-     */
-    slideFloatingElement(element: HTMLElement, fromElement: HTMLElement | null | undefined, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
+    fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
     /**
      * Add a floating element over another element.
      */
-    addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
+    slideFloatingElement(element: HTMLElement, fromElement: HTMLElement | null | undefined, toElement: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
+    /**
+     * Add a floating element over another element.
+     */
+    addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
     /**
      * Add a floating message over another element.
      */
-    displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingPieceAnimationSettings): Promise<void>;
+    displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingElementAnimationSettings): Promise<void>;
     /**
      * Add a floating number over another element.
      * It will be prefixed by '+' if positive, and '-' if negative.
      */
-    displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingPieceAnimationSettings): Promise<void>;
+    displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingElementAnimationSettings): Promise<void>;
     /**
      * Play multiple animations a the same time.
      *

@@ -45,7 +45,15 @@ interface ParallelAnimation {
  * Settings to apply to an animation. Other animations can be run in parallel, using the same duration.
  */
 interface AnimationSettings extends AnimationManagerSettings {
+    /**
+     * Animations to play at the same time as the main animation
+     */
     parallelAnimations?: ParallelAnimation[];
+
+    /**
+     * Preserve the scale of the object when sliding in or out.
+     */
+    preserveScale?: boolean;
 }
 
 interface SlideAnimationSettings extends AnimationSettings {
@@ -55,7 +63,7 @@ interface SlideAnimationSettings extends AnimationSettings {
     bump?: number;
 }
 
-interface FloatingPieceAnimationSettings extends SlideAnimationSettings {
+interface FloatingElementAnimationSettings extends SlideAnimationSettings {
     /**
      * Ignore the scale of the from and to element when doing the animation (default true).
      */
@@ -65,6 +73,11 @@ interface FloatingPieceAnimationSettings extends SlideAnimationSettings {
      * Ignore the rotation of the from and to element when doing the animation (default true).
      */
     ignoreRotation?: boolean;
+
+    /**
+     * A scale to apply to the floating element.
+     */
+    scale?: number;
 }
 
 interface AnimationResult {

@@ -47,8 +47,8 @@ class AnimationManager {
             this.base.addAnimatedSpaceIfNecessary(element, fromParent, 'shrink', allAnimationSettings, fromNextSibling),
         ])
         .then(results => {
-            runningAnimation.toSpaceWrapper = results[0].animationWrapper;
-            runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+            runningAnimation.toSpaceWrapper = results[0]?.animationWrapper;
+            runningAnimation.wrappersToRemove.push(...results.map(result => result?.animationWrapper));
             this.base.endRunningAnimation(runningAnimation);
         });
     }
@@ -127,7 +127,7 @@ class AnimationManager {
             }
             if (index === animations.length - 1) {
                 runningAnimation.toSpaceWrapper = results[animations.length - 1]?.animationWrapper;
-                runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+                runningAnimation.wrappersToRemove.push(...results.map(result => result?.animationWrapper));
             }
             
             runningAnimation = results[0];
@@ -185,15 +185,21 @@ class AnimationManager {
     /**
      * Slide an object in. The object must be attached to the destination before.
      */
-    public async slideIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any> {
+    public async slideIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
             return;
         }
 
-        const runningAnimation = this.base.startSlideInAnimation(element, fromElement, animationSettings?.ignoreScale ?? true, animationSettings?.ignoreRotation ?? true);
-        const { toParent, toNextSibling, wrapper, fromMatrix, toMatrix } = runningAnimation;
-
         const allAnimationSettings = { ...this.animationSettings, ...animationSettings };
+
+        const runningAnimation = this.base.startSlideInAnimation(
+            element, 
+            fromElement, 
+            animationSettings?.ignoreScale ?? true, 
+            animationSettings?.ignoreRotation ?? true, 
+            allAnimationSettings.preserveScale ?? true,
+        );
+        const { toParent, toNextSibling, wrapper, fromMatrix, toMatrix } = runningAnimation;
 
         const promises = [
             this.base.addAnimatedSpaceIfNecessary(element, toParent, 'grow', allAnimationSettings, toNextSibling),
@@ -202,8 +208,8 @@ class AnimationManager {
 
         await Promise.all(promises)
         .then(results => {
-            runningAnimation.toSpaceWrapper = results[0].animationWrapper;
-            runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
+            runningAnimation.toSpaceWrapper = results[0]?.animationWrapper;
+            runningAnimation.wrappersToRemove.push(...results.map(result => result?.animationWrapper));
             this.base.endRunningAnimation(runningAnimation);
         });
     }
@@ -211,7 +217,7 @@ class AnimationManager {
     /**
      * Fade an object in. The object must be attached to the destination before.
      */
-    public async fadeIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: AnimationSettings): Promise<any> {
+    public async fadeIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
             return;
         }
@@ -226,9 +232,9 @@ class AnimationManager {
     }
 
     /**
-     * Fade out an object and destroy it. It call be called with a toElment, in that case a slide animation will be triggered.
+     * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
-    public async fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: AnimationSettings): Promise<any> {
+    public async fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
             element.remove();
             return;
@@ -240,7 +246,13 @@ class AnimationManager {
             parallelAnimations: [this.base.createFadeAnimation('out'), ...animationSettings?.parallelAnimations ?? []],
         }
 
-        const runningAnimation = this.base.startSlideOutAnimation(element, toElement, false, false);
+        const runningAnimation = this.base.startSlideOutAnimation(
+            element, 
+            toElement, 
+            animationSettings?.ignoreScale ?? false, 
+            animationSettings?.ignoreRotation ?? false,
+            animationSettings.preserveScale ?? true,
+        );
         const { wrapper, fromMatrix, toMatrix } = runningAnimation;
 
         await Promise.all([
@@ -258,7 +270,7 @@ class AnimationManager {
     /**
      * Add a floating element over another element.
      */
-    public async slideFloatingElement(element: HTMLElement, fromElement: HTMLElement | null | undefined, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any> {
+    public async slideFloatingElement(element: HTMLElement, fromElement: HTMLElement | null | undefined, toElement: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
             return;
         }
@@ -272,6 +284,11 @@ class AnimationManager {
         const fromMatrix = fromElement ?
             this.base.getFullMatrixFromElementCenter(fromElement, allAnimationSettings.ignoreScale ?? true, allAnimationSettings.ignoreRotation ?? true) :
             toMatrix;
+
+        if (animationSettings?.scale ?? 1 !== 1) {            
+            toMatrix.scaleSelf(animationSettings.scale, animationSettings.scale);
+            fromMatrix.scaleSelf(animationSettings.scale, animationSettings.scale);
+        }
         
         const promises = [
             this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, { easing: 'ease-out', ...allAnimationSettings }),
@@ -287,14 +304,14 @@ class AnimationManager {
     /**
      * Add a floating element over another element.
      */
-    public async addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any> {
+    public async addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         return this.slideFloatingElement(element, null, toElement, { bump: null, ...animationSettings });
     }
 
     /**
      * Add a floating message over another element.
      */
-    public async displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingPieceAnimationSettings) {
+    public async displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingElementAnimationSettings) {
         const scoreElement = document.createElement('div');
         scoreElement.classList.add('bga-animations_floating-message');
         scoreElement.innerText = message;
@@ -320,7 +337,7 @@ class AnimationManager {
      * Add a floating number over another element.
      * It will be prefixed by '+' if positive, and '-' if negative.
      */
-    public async displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingPieceAnimationSettings) {
+    public async displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingElementAnimationSettings) {
         const message = `${score > 0 ? '+' : ''}${score}`;
         await this.displayMessage(toElement, message, color, animationSettings);
     }

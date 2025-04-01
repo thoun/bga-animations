@@ -44,6 +44,8 @@
             </fieldset>
             <fieldset>
                 <legend>Slide / fade</legend>
+                <input id="preserveScale" type="checkbox" checked onclick="animationSettings.preserveScale = this.checked;">
+                <label for="preserveScale">preserve scale</label>
                 <div>
                     <button onclick="fadeIn()">Fade in</button>
                     <button onclick="fadeInFrom()">Fade in (from the void)</button>
@@ -57,9 +59,11 @@
             <fieldset>
                 <legend>Floating (temp) element</legend>
                 <input id="ignoreScale" type="checkbox" checked onclick="floatingPieceAnimationSettings.ignoreScale = this.checked;">
-                <label for="ignoreScale">ignoreScale</label>
+                <label for="ignoreScale">ignore scale</label>
                 <input id="ignoreRotation" type="checkbox" checked onclick="floatingPieceAnimationSettings.ignoreRotation = this.checked;">
-                <label for="ignoreRotation">ignoreRotation</label>
+                <label for="ignoreRotation">ignore rotation</label>
+                <input id="applyZoomScale" type="checkbox">
+                <label for="applyZoomScale">Apply zoom scale</label>
                 -
                 <button onclick="addFloatingPiece()">Add floating piece</button>
                 <select id="addFloatingPiece-effect">

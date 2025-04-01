@@ -148,9 +148,7 @@ function initManager() {
         localStorageZoomKey: 'bga-animations-demo',
     });
 
-    animationManager = new AnimationManager(game, {
-        zoomManager
-    });
+    animationManager = new AnimationManager(game);
 
     lines.forEach((line, i) => {
         const mainDiv = document.createElement('div');
@@ -412,11 +410,12 @@ async function slideFloatingElements() {
  * Add a temporary element, showing a message related to that element.
  */
 async function displayMessage() {
+    const scale = document.getElementById('applyZoomScale').checked ? zoomManager.zoom : undefined;
     lines.forEach(async (line, index) => { 
         const toElement = getElement(index);
         const color = PLAYER_COLORS[index];
         const message = 'Good! 🎉';
-        await animationManager.displayMessage(toElement, message, color, floatingPieceAnimationSettings);
+        await animationManager.displayMessage(toElement, message, color, { ...floatingPieceAnimationSettings, scale });
     });
 }
 
@@ -424,11 +423,12 @@ async function displayMessage() {
  * Add a temporary element, showing the score related to that element.
  */
 async function displayScoring() {
+    const scale = document.getElementById('applyZoomScale').checked ? zoomManager.zoom : undefined;
     lines.forEach(async (line, index) => { 
         const toElement = getElement(index);
         const color = PLAYER_COLORS[index];
         const score = index - 4;
-        await animationManager.displayScoring(toElement, score, color, floatingPieceAnimationSettings);
+        await animationManager.displayScoring(toElement, score, color, { ...floatingPieceAnimationSettings, scale });
     });
 }
 
@@ -436,13 +436,14 @@ async function displayScoring() {
  * Slide all at the same time, then show the scores one by one.
  */
 async function attachAndDisplayScoring() {
+    const scale = document.getElementById('applyZoomScale').checked ? zoomManager.zoom : undefined;
     await slideAll();
     await game.wait(300);
     await animationManager.playSequentially(lines.map((line, index) => {
         const element = getElement(index);
         const color = PLAYER_COLORS[index];
         const score = index + 1;
-        return () => animationManager.displayScoring(element, score, color, { ...floatingPieceAnimationSettings, duration: 1000 });
+        return () => animationManager.displayScoring(element, score, color, { ...floatingPieceAnimationSettings, scale, duration: 1000 });
     }));
 
 }
