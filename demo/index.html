@@ -1,6 +1,7 @@
 <html id="html">
     <head>
         <title>bga-animations demo</title>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
         <script>
             function define() {}
         </script>
@@ -12,72 +13,82 @@
         <script src="./manager.js" type="text/javascript"></script>
     </head>
     <body id="body" style="margin: 0;">
+        <div>
+            <input id="instantaneousMode" type="checkbox" onclick="game.instantaneousMode = this.checked;">
+            <label for="instantaneousMode">game.instantaneousMode</label>
+            -
+            Filling spaces : <select id="fillingSpaces" onchange="animationSettings.fillingSpaces = this.value;">
+                <option value="all" selected>all</option>
+                <option value="none">none</option>
+                <option value="from">from</option>
+                <option value="to">to</option>
+            </select>
+        </div>
+        <div class="control-blocks">
+            <fieldset>
+                <legend>Attach</legend>
+                <button onclick="slideAll()">Slide to the other box</button>
+                <select id="slideAll-effect">
+                    <option value="" selected>(no effect)</option>
+                    <option value="blink">(with blink effect)</option>
+                    <option value="rotateAndBump">(with rotate & bump)</option>
+                </select>
+                -
+                <button onclick="slideAllScreenCenter()">Slide to screen center then the other box</button>
+                -
+                <button onclick="slideAllVoid()">Slide to the void then the other box</button>
+                -
+                <button onclick="slideAllCustomFunction()">Slide to each corner screen then the other box (custom function)</button>
+                -
+                <button onclick="swap()">Swap</button>
+            </fieldset>
+            <fieldset>
+                <legend>Slide / fade</legend>
+                <div>
+                    <button onclick="fadeIn()">Fade in</button>
+                    <button onclick="fadeInFrom()">Fade in (from the void)</button>
+                    <button onclick="slideInFrom()">Slide in (from the void)</button>
+                </div>
+                <div>
+                    <button onclick="fadeOutAndDestroy()">Fade out and destroy</button>
+                    <button onclick="fadeOutAndDestroyTo()">Fade out (to the void) and destroy</button>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Floating (temp) element</legend>
+                <input id="ignoreScale" type="checkbox" checked onclick="floatingPieceAnimationSettings.ignoreScale = this.checked;">
+                <label for="ignoreScale">ignoreScale</label>
+                <input id="ignoreRotation" type="checkbox" checked onclick="floatingPieceAnimationSettings.ignoreRotation = this.checked;">
+                <label for="ignoreRotation">ignoreRotation</label>
+                -
+                <button onclick="addFloatingPiece()">Add floating piece</button>
+                <select id="addFloatingPiece-effect">
+                    <option value="" selected>(no effect)</option>
+                    <option value="slideUpAndFadeOut">(with slide up & fade out)</option>
+                    <option value="rotateAndScaleDown">(with rotate & scale down)</option>
+                </select>
+                -
+                <button onclick="slideFloatingElement()">Slide floating piece</button>
+                -
+                <button onclick="slideFloatingElements()">Slide multiple pieces</button>
+                <select id="slideFloatingElements-spacing">
+                    <option value="interval" selected>(interval)</option>
+                    <option value="sequentially">(sequentially)</option>
+                    <option value="parallel">(parallel)</option>
+                </select>
+                -
+                <button onclick="displayMessage()">Display message</button>
+                <button onclick="displayScoring()">Display scoring</button>
+            </fieldset>
+        </div>
+        <div>
+            <div id="the-void-wrapper">
+                <strong id="the-void">The Void</strong>
+            </div>
+        </div>
+
         <div id="game_area_wrap">
             <div id="game-table">
-                <div>
-                    <input id="instantaneousMode" type="checkbox" onclick="game.instantaneousMode = this.checked;">
-                 <label for="instantaneousMode">game.instantaneousMode</label>
-                 -
-                 Filling spaces : <select id="fillingSpaces" onchange="animationSettings.fillingSpaces = this.value;">
-                    <option value="all" selected>all</option>
-                    <option value="none">none</option>
-                    <option value="from">from</option>
-                    <option value="to">to</option>
-                </select>
-                </div>
-                <div>
-                    <div>
-                        <button onclick="slideAll()">Slide to the other box</button>
-                        <select id="slideAll-effect">
-                            <option value="" selected>(no effect)</option>
-                            <option value="blink">(with blink effect)</option>
-                            <option value="rotateAndBump">(with rotate & bump)</option>
-                        </select>
-                        -
-                        <button onclick="slideAllScreenCenter()">Slide to screen center then the other box</button>
-                        -
-                        <button onclick="slideAllVoid()">Slide to the void then the other box</button>
-                        -
-                        <button onclick="slideAllCustomFunction()">Slide to each corner screen then the other box (custom function)</button>
-                        -
-                        <button onclick="swap()">Swap</button>
-                    </div>
-                    <div>
-                        <button onclick="fadeIn()">Fade in</button>
-                        <button onclick="fadeInFrom()">Fade in (from the void)</button>
-                        <button onclick="slideInFrom()">Slide in (from the void)</button>
-                    </div>
-                    <div>
-                        <button onclick="fadeOutAndDestroy()">Fade out and destroy</button>
-                        <button onclick="fadeOutAndDestroyTo()">Fade out (to the void) and destroy</button>
-                    </div>
-                    <div>
-                        <button onclick="addFloatingPiece(false, false)">Add floating piece</button>
-                        <button onclick="addFloatingPiece(true, false)">Add floating piece (ignore scale)</button>
-                        <button onclick="addFloatingPiece(false, true)">Add floating piece (ignore rotation)</button>
-                        <button onclick="addFloatingPiece(true, true)">Add floating piece (ignore scale & rotation)</button>
-                        <select id="addFloatingPiece-effect">
-                            <option value="" selected>(no effect)</option>
-                            <option value="slideUpAndFadeOut">(with slide up & fade out)</option>
-                            <option value="rotateAndScaleDown">(with rotate & scale down)</option>
-                        </select>
-                        -
-                        <button onclick="slideFloatingElement(false, false)">Slide floating piece</button>
-                        <button onclick="slideFloatingElement(true, false)">Slide floating piece (ignore scale)</button>
-                        <button onclick="slideFloatingElement(false, true)">Slide floating piece (ignore rotation)</button>
-                        <button onclick="slideFloatingElement(true, true)">Slide floating piece (ignore scale & rotation)</button>
-                        -
-                        <button onclick="slideFloatingElements()">Slide multiple pieces</button>
-                        <select id="slideFloatingElements-spacing">
-                            <option value="interval" selected>(interval)</option>
-                            <option value="sequentially">(sequentially)</option>
-                            <option value="parallel">(parallel)</option>
-                        </select>
-                    </div>
-                    <div id="the-void-wrapper">
-                        <strong id="the-void">The Void</strong>
-                    </div>
-                </div>
                 <div class="examples"></div>
             </div>
         </div>

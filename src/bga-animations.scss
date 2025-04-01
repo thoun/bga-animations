@@ -1,12 +1,15 @@
+:root {
+    --bga-animations_z-index: 999;
+}
+
 .bga-animations_animation-surface {
     pointer-events: none;
     user-select: none;
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 0;
-    right: 0;
-    overflow: hidden;
+    overflow: visible; // not auto to never add scrollbars
+    z-index: var(--bga-animations_z-index);
 }
 
 .bga-animations_filling-space {
@@ -16,4 +19,17 @@
 .bga-animations_animation-wrapper {
     display: inline-block;
     position: absolute;
+}
+
+/* Scoring */
+
+.bga-animations_floating-message {
+    --color: black;
+
+	font-size: 1em;
+    font-weight: bold;
+    color: var(--color);
+    position: absolute;
+    text-shadow: 1px 0 1px #fff, 0 -1px 1px #fff, 0 1px 1px #fff, -1px 0 1px #fff;
+    white-space: nowrap;
 }

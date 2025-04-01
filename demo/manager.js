@@ -5,10 +5,16 @@ const animationSettings = /*undefined;*/ {
     duration: 1000,
 };
 
+const floatingPieceAnimationSettings = {
+    duration: 2000,
+    ignoreScale: true,
+    ignoreRotation: true,
+};
+
 /**
  * Simulate the game class.
  */
-let game = {
+const game = {
     instantaneousMode: false,
 
     bgaAnimationsActive: function() {
@@ -336,7 +342,7 @@ function createCoin() {
  * Add a temporary element displayed on top of a moving box.
  * Apply a parallel animation if some has been specified in the Select.
  */
-function addFloatingPiece(ignoreScale, ignoreRotation) {
+function addFloatingPiece() {
     const effect = document.getElementById('addFloatingPiece-effect').value;
     const parallelAnimations = [];
     if (effect === 'slideUpAndFadeOut') {
@@ -358,28 +364,21 @@ function addFloatingPiece(ignoreScale, ignoreRotation) {
     lines.forEach(async (line, index) => { 
         const coin = createCoin();
         const toElement = getElement(index);
-        await animationManager.addFloatingElement(coin, toElement, { ...animationSettings, 
-            ignoreScale,
-            ignoreRotation,
-            duration: 2000,
+        await animationManager.addFloatingElement(coin, toElement, { ...floatingPieceAnimationSettings, 
             parallelAnimations,
         });
     });
 }
 
 /**
- * Add a temporary element, that slides between the 2 containers..
+ * Add a temporary element, that slides between the 2 containers.
  */
-function slideFloatingElement(ignoreScale, ignoreRotation) {
+function slideFloatingElement() {
     lines.forEach(async (line, index) => { 
         const coin = createCoin();
         const fromElement = document.getElementById(`to${index}`).lastElementChild;
         const toElement = getElement(index);
-        await animationManager.slideFloatingElement(coin, fromElement, toElement, { ...animationSettings, 
-            ignoreScale,
-            ignoreRotation,
-            duration: 2000,
-        });
+        await animationManager.slideFloatingElement(coin, fromElement, toElement, floatingPieceAnimationSettings);
     });
 }
 
@@ -389,12 +388,13 @@ function slideFloatingElement(ignoreScale, ignoreRotation) {
  */
 function slideFloatingElements() {
     const spacing = document.getElementById('slideFloatingElements-spacing').value;
+    const elementCount = 5;
 
     lines.forEach(async (line, index) => {
         const fromElement = document.getElementById(`to${index}`).lastElementChild;
         const toElement = getElement(index);
 
-        const animations = new Array(5).fill(0).map(index => (() => animationManager.slideFloatingElement(createCoin(), fromElement, toElement, animationSettings)));
+        const animations = new Array(elementCount).fill(0).map(index => (() => animationManager.slideFloatingElement(createCoin(), fromElement, toElement, floatingPieceAnimationSettings)));
 
         if (spacing === 'interval') {
             await animationManager.playInterval(animations/*, 150*/);
@@ -403,6 +403,30 @@ function slideFloatingElements() {
         } else if (spacing === 'sequentially') {
             await animationManager.playSequentially(animations);
         }
+    });
+}
+
+/**
+ * Add a temporary element, showing a message related to that element.
+ */
+function displayMessage() {
+    lines.forEach(async (line, index) => { 
+        const toElement = getElement(index);
+        const color = '00AA00';
+        const message = 'Good! 🎉';
+        await animationManager.displayMessage(toElement, message, color, floatingPieceAnimationSettings);
+    });
+}
+
+/**
+ * Add a temporary element, showing the score related to that element.
+ */
+function displayScoring() {
+    lines.forEach(async (line, index) => { 
+        const toElement = getElement(index);
+        const color = '00AA00';
+        const score = index - 4;
+        await animationManager.displayScoring(toElement, score, color, floatingPieceAnimationSettings);
     });
 }
 

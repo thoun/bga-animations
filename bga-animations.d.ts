@@ -145,6 +145,15 @@ declare class AnimationManager {
      */
     addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingPieceAnimationSettings): Promise<any>;
     /**
+     * Add a floating message over another element.
+     */
+    displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingPieceAnimationSettings): Promise<void>;
+    /**
+     * Add a floating number over another element.
+     * It will be prefixed by '+' if positive, and '-' if negative.
+     */
+    displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingPieceAnimationSettings): Promise<void>;
+    /**
      * Play multiple animations a the same time.
      *
      * @param animations functions generating an animation, returning a Promise.

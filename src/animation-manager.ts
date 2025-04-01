@@ -292,6 +292,40 @@ class AnimationManager {
     }
 
     /**
+     * Add a floating message over another element.
+     */
+    public async displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingPieceAnimationSettings) {
+        const scoreElement = document.createElement('div');
+        scoreElement.classList.add('bga-animations_floating-message');
+        scoreElement.innerText = message;
+        scoreElement.style.setProperty('--color', `#${color}`);
+
+        const parallelAnimations = [
+            {
+                keyframes: [
+                    { transform: 'scale(0)', offset: 0 },
+                    { transform: 'scale(3) rotate(-360deg)' , offset: 0.1 },
+                    { transform: 'scale(3) rotate(-360deg)' , offset: 0.9 },
+                    { transform: 'scale(0)', offset: 1 },
+                ]
+            }
+        ];
+
+        await this.addFloatingElement(scoreElement, toElement, { ...animationSettings, 
+            parallelAnimations,
+        });
+    }
+
+    /**
+     * Add a floating number over another element.
+     * It will be prefixed by '+' if positive, and '-' if negative.
+     */
+    public async displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingPieceAnimationSettings) {
+        const message = `${score > 0 ? '+' : ''}${score}`;
+        await this.displayMessage(toElement, message, color, animationSettings);
+    }
+
+    /**
      * Play multiple animations a the same time.
      * 
      * @param animations functions generating an animation, returning a Promise.

@@ -6,6 +6,11 @@ h1, h2 {
     margin: 0.3rem;
 }
 
+.control-blocks {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .examples {
     display: flex;
     gap: 20px;

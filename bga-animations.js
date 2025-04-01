@@ -812,6 +812,56 @@ var AnimationManager = /** @class */ (function () {
         });
     };
     /**
+     * Add a floating message over another element.
+     */
+    AnimationManager.prototype.displayMessage = function (toElement, message, color, animationSettings) {
+        return __awaiter(this, void 0, void 0, function () {
+            var scoreElement, parallelAnimations;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        scoreElement = document.createElement('div');
+                        scoreElement.classList.add('bga-animations_floating-message');
+                        scoreElement.innerText = message;
+                        scoreElement.style.setProperty('--color', "#".concat(color));
+                        parallelAnimations = [
+                            {
+                                keyframes: [
+                                    { transform: 'scale(0)', offset: 0 },
+                                    { transform: 'scale(3) rotate(-360deg)', offset: 0.1 },
+                                    { transform: 'scale(3) rotate(-360deg)', offset: 0.9 },
+                                    { transform: 'scale(0)', offset: 1 },
+                                ]
+                            }
+                        ];
+                        return [4 /*yield*/, this.addFloatingElement(scoreElement, toElement, __assign(__assign({}, animationSettings), { parallelAnimations: parallelAnimations }))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Add a floating number over another element.
+     * It will be prefixed by '+' if positive, and '-' if negative.
+     */
+    AnimationManager.prototype.displayScoring = function (toElement, score, color, animationSettings) {
+        return __awaiter(this, void 0, void 0, function () {
+            var message;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        message = "".concat(score > 0 ? '+' : '').concat(score);
+                        return [4 /*yield*/, this.displayMessage(toElement, message, color, animationSettings)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
      * Play multiple animations a the same time.
      *
      * @param animations functions generating an animation, returning a Promise.
