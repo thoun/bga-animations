@@ -394,7 +394,7 @@ async function addFloatingPiece() {
 async function slideFloatingElement() {
     lines.forEach(async (line, index) => { 
         const coin = createCoin();
-        const fromElement = document.getElementById(`to${index}`).lastElementChild;
+        const fromElement = getToElement(index).lastElementChild;
         const toElement = getElement(index);
         await animationManager.slideFloatingElement(coin, fromElement, toElement, floatingPieceAnimationSettings);
     });
@@ -409,7 +409,7 @@ async function slideFloatingElements() {
     const elementCount = 5;
 
     lines.forEach(async (line, index) => {
-        const fromElement = document.getElementById(`to${index}`).lastElementChild;
+        const fromElement = getToElement(index).lastElementChild;
         const toElement = getElement(index);
 
         const animations = new Array(elementCount).fill(0).map(index => (() => animationManager.slideFloatingElement(createCoin(), fromElement, toElement, floatingPieceAnimationSettings)));
@@ -464,6 +464,27 @@ async function attachAndDisplayScoring() {
         return () => animationManager.displayScoring(element, score, color, { ...floatingPieceAnimationSettings, scale, duration: 1000 });
     }));
 
+}
+
+/**
+ * Add a temporary bubble message, related to an element.
+ */
+async function displayBubble() {
+    const verticalBase = document.getElementById('bubble-position').value;
+    const scale = document.getElementById('applyZoomScale').checked ? zoomManager.zoom : undefined;
+    lines.forEach(async (line, index) => { 
+        const toElement = getElement(index);
+        const message = `I'm <b>${line.title}</b>`;
+        await animationManager.displayBubble(toElement, message, {
+            ...floatingPieceAnimationSettings, 
+            scale, 
+            toSettings: {
+                ignoreScale: floatingPieceAnimationSettings.ignoreScale,
+                ignoreRotation: floatingPieceAnimationSettings.ignoreRotation,
+                verticalBase,
+            } 
+        });
+    });
 }
 
 /**

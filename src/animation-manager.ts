@@ -77,7 +77,7 @@ class AnimationManager {
             parallelAnimations: [this.base.createBumpAnimation(allAnimationSettings?.bump ?? 1.2), ...allAnimationSettings?.parallelAnimations ?? []],
         }
 
-        const matrixes = elements.map(element => this.base.getFullMatrix(element));
+        const matrixes = elements.map(element => this.base.getFullMatrix(element, { ignoreScale: false, ignoreRotation: false, includeSelfRotationAndScale: false }));
         const wrappers = elements.map(element => this.base.wrapOnAnimationSurface(element));
         
         await Promise.all(elements.map((element, index) => Promise.all([
@@ -88,7 +88,7 @@ class AnimationManager {
         .then(results => {
             // add before the filling space if it exists, else before the nextSibling
             this.base.attachToElement(element, parents[1 - index], results[0]?.animationWrapper ?? nextSiblings[1 - index]);
-            results.forEach(result => result?.animationWrapper?.remove());
+            results.forEach(result => this.base.removeElement(result?.animationWrapper));
         })));
     }
     
@@ -123,7 +123,7 @@ class AnimationManager {
             const results = await Promise.all(promises);
 
             if (index === 0) { // remove shrinking animation
-                results[1]?.animationWrapper?.remove();
+                this.base.removeElement(results[1]?.animationWrapper);
             }
             if (index === animations.length - 1) {
                 runningAnimation.toSpaceWrapper = results[animations.length - 1]?.animationWrapper;
@@ -163,7 +163,7 @@ class AnimationManager {
      * Slide an object over an intermediate element then attach to an element.
      */
     public async slideToElementAndAttach(element: HTMLElement, overElement: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any> {
-        const overElementMatrix = this.base.getFullMatrixFromElementCenter(overElement);
+        const overElementMatrix = this.base.getFullMatrix(overElement, { ignoreScale: true, ignoreRotation: true });
 
         const toCenterScreen = async (runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => {
             await this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, overElementMatrix, animationSettings);
@@ -236,7 +236,7 @@ class AnimationManager {
      */
     public async slideOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
-            element.remove();
+            this.base.removeElement(element);
             return;
         }
 
@@ -256,7 +256,7 @@ class AnimationManager {
             this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, { easing: 'ease-in', ...this.animationSettings, ...finalAnimationSettings }),
         ])
         .then(results => {
-            element.remove();
+            this.base.removeElement(element);
             runningAnimation.element = null;
             runningAnimation.wrappersToRemove.push(...results.map(result => result.animationWrapper));
             this.base.endRunningAnimation(runningAnimation);
@@ -268,7 +268,7 @@ class AnimationManager {
      */
     public async fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
-            element.remove();
+            this.base.removeElement(element);
             return;
         }
 
@@ -281,6 +281,32 @@ class AnimationManager {
         await this.slideOutAndDestroy(element, toElement, finalAnimationSettings);
     }
 
+    public getFloatingElementParams(animationSettings?: FloatingElementAnimationSettings, parallelAnimations?: ParallelAnimation[]) {
+        if (animationSettings && !animationSettings.fromSettings) {
+            animationSettings.fromSettings = {
+                ignoreScale: animationSettings.ignoreScale,
+                ignoreRotation: animationSettings.ignoreRotation,
+            };
+        }
+        if (animationSettings && !animationSettings.toSettings) {
+            animationSettings.toSettings = {
+                ignoreScale: animationSettings.ignoreScale,
+                ignoreRotation: animationSettings.ignoreRotation,
+            };
+        }
+
+        const allAnimationSettings = {
+            ...this.animationSettings,
+            ...animationSettings
+        };
+
+        if (parallelAnimations) {
+            allAnimationSettings.parallelAnimations = [...parallelAnimations, ...(animationSettings?.parallelAnimations ?? [])]
+        }
+
+        return allAnimationSettings;
+    }
+
     /**
      * Add a floating element over another element.
      */
@@ -289,14 +315,14 @@ class AnimationManager {
             return;
         }
 
-        const allAnimationSettings = { ...this.animationSettings, ...animationSettings };
+        const allAnimationSettings = this.getFloatingElementParams(animationSettings);
 
         // before computation, to we able to get clientWidth/clientHeight
-        const wrapper = this.base.wrapOnAnimationSurface(element);
+        const wrapper = this.base.wrapOnAnimationSurface(element, allAnimationSettings.toSettings);
 
-        const toMatrix = this.base.getFullMatrixFromElementCenter(toElement, allAnimationSettings.ignoreScale ?? true, allAnimationSettings.ignoreRotation ?? true);
+        const toMatrix = this.base.getFullMatrix(toElement, { ignoreScale: true, ignoreRotation: true, includeSelfRotationAndScale: false, ...allAnimationSettings.toSettings });
         const fromMatrix = fromElement ?
-            this.base.getFullMatrixFromElementCenter(fromElement, allAnimationSettings.ignoreScale ?? true, allAnimationSettings.ignoreRotation ?? true) :
+            this.base.getFullMatrix(fromElement, { ignoreScale: true, ignoreRotation: true, includeSelfRotationAndScale: false, ...allAnimationSettings.fromSettings }) :
             toMatrix;
 
         if (animationSettings?.scale ?? 1 !== 1) {            
@@ -310,8 +336,8 @@ class AnimationManager {
 
         await Promise.all(promises)
         .then(results => {
-            element.remove();
-            results.forEach(result => result?.animationWrapper?.remove());
+            this.base.removeElement(element);
+            results.forEach(result => this.base.removeElement(result?.animationWrapper));
         });
     }
 
@@ -340,11 +366,11 @@ class AnimationManager {
             ]
         };
 
-        await this.addFloatingElement(scoreElement, toElement, {
+        const finalAnimationSettings = this.getFloatingElementParams({
             duration: 2000,
-            ...animationSettings, 
-            parallelAnimations: [zoomInOutAnimation, ...(animationSettings?.parallelAnimations ?? [])],
-        });
+            ...animationSettings,
+        }, [zoomInOutAnimation]);
+        await this.addFloatingElement(scoreElement, toElement, finalAnimationSettings);
     }
 
     /**
@@ -354,6 +380,36 @@ class AnimationManager {
     public async displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingElementAnimationSettings) {
         const message = `${score > 0 ? '+' : ''}${score}`;
         await this.displayMessage(toElement, message, color, animationSettings);
+    }
+
+    public async displayBubble(toElement: HTMLElement, message: string, animationSettings?: FloatingElementAnimationSettings) {
+        const scoreElement = document.createElement('div');
+        scoreElement.classList.add('bga-animations_discussion-bubble');
+        scoreElement.innerHTML = message;
+
+        const fadeInOutAnimation = {
+            keyframes: [
+                { opacity: 0, offset: 0 },
+                { opacity: 1, offset: 0.1 },
+                { opacity: 1, offset: 0.9 },
+                { opacity: 0, offset: 1 },
+            ]
+        };
+
+        const finalAnimationSettings = this.getFloatingElementParams({
+            duration: 2000,
+            ...animationSettings, 
+        }, [fadeInOutAnimation]);
+        if (!finalAnimationSettings.toSettings.verticalBase) {
+            finalAnimationSettings.toSettings.verticalBase = 'top';
+        }
+        if (finalAnimationSettings.toSettings.verticalBase && !finalAnimationSettings.fromSettings.verticalBase) {
+            finalAnimationSettings.fromSettings.verticalBase = finalAnimationSettings.toSettings.verticalBase === 'bottom' ? 'top' : 'bottom';
+        }
+
+        scoreElement.dataset.verticalBase = finalAnimationSettings.toSettings.verticalBase;
+
+        await this.addFloatingElement(scoreElement, toElement, finalAnimationSettings);
     }
 
     /**

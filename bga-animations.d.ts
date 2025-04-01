@@ -20,7 +20,7 @@ declare class BaseAnimationManager {
     /**
      * Get translation, rotation & scale matrix for an element, relative to the top of the page.
      */
-    getFullMatrix(element: HTMLElement): DOMMatrix;
+    getFullMatrix(element: HTMLElement, params?: PositionSettings): DOMMatrix;
     /**
      * Remove the scale part of a matrix.
      */
@@ -33,10 +33,6 @@ declare class BaseAnimationManager {
      * Remove the translation part of a matrix.
      */
     removeTranslationFromMatrix(matrix: DOMMatrix): DOMMatrix;
-    /**
-     * Get the matrix of an element, to place it at the center of a parent element.
-     */
-    getFullMatrixFromElementCenter(parentElement: HTMLElement, ignoreScale?: boolean, ignoreRotation?: boolean): DOMMatrix;
     /**
      * Create a temp div of the same size as the element.
      */
@@ -65,7 +61,7 @@ declare class BaseAnimationManager {
      * Add a wrapper around an element, and add the elment on that wrapper.
      * Needed before doing animations on the surface
      */
-    wrapOnAnimationSurface(element: HTMLElement): HTMLElement;
+    wrapOnAnimationSurface(element: HTMLElement, positionSettings?: PositionSettings): HTMLElement;
     /**
      * Add a wrapper layer.
      * Needed before doing sub-animations without messing to the animation on the main wrapper
@@ -95,6 +91,7 @@ declare class BaseAnimationManager {
     startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale?: boolean, fromIgnoreRotation?: boolean, preserveScale?: boolean): RunningAnimation | null;
     startAttachAnimation(element: HTMLElement, toElement: HTMLElement, insertBefore?: HTMLElement): RunningAnimation | null;
     endRunningAnimation(attachAnimation: RunningAnimation): void;
+    removeElement(element: HTMLElement | undefined | null): void;
 }
 declare class AnimationManager {
     game: Game;
@@ -141,6 +138,19 @@ declare class AnimationManager {
      * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
     fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
+    getFloatingElementParams(animationSettings?: FloatingElementAnimationSettings, parallelAnimations?: ParallelAnimation[]): {
+        fromSettings?: PositionSettings;
+        toSettings?: PositionSettings;
+        ignoreScale?: boolean;
+        ignoreRotation?: boolean;
+        scale?: number;
+        bump?: number;
+        parallelAnimations?: ParallelAnimation[];
+        preserveScale?: boolean;
+        duration?: number;
+        easing?: string;
+        fillingSpaces?: "all" | "none" | "from" | "to";
+    };
     /**
      * Add a floating element over another element.
      */
@@ -158,6 +168,7 @@ declare class AnimationManager {
      * It will be prefixed by '+' if positive, and '-' if negative.
      */
     displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingElementAnimationSettings): Promise<void>;
+    displayBubble(toElement: HTMLElement, message: string, animationSettings?: FloatingElementAnimationSettings): Promise<void>;
     /**
      * Play multiple animations a the same time.
      *

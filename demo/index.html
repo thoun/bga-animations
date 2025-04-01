@@ -68,26 +68,36 @@
                 <label for="ignoreRotation">ignore rotation</label>
                 <input id="applyZoomScale" type="checkbox">
                 <label for="applyZoomScale">Apply zoom scale</label>
-                -
-                <button onclick="addFloatingPiece()">Add floating piece</button>
-                <select id="addFloatingPiece-effect">
-                    <option value="" selected>(no effect)</option>
-                    <option value="slideUpAndFadeOut">(with slide up & fade out)</option>
-                    <option value="rotateAndScaleDown">(with rotate & scale down)</option>
-                </select>
-                -
-                <button onclick="slideFloatingElement()">Slide floating piece</button>
-                -
-                <button onclick="slideFloatingElements()">Slide multiple pieces</button>
-                <select id="slideFloatingElements-spacing">
-                    <option value="interval" selected>(interval)</option>
-                    <option value="sequentially">(sequentially)</option>
-                    <option value="parallel">(parallel)</option>
-                </select>
-                -
-                <button onclick="displayMessage()">Display message</button>
-                <button onclick="displayScoring()">Display scoring</button>
-                <button onclick="attachAndDisplayScoring()">Attach and display scoring</button>
+                
+                <div>
+                    <button onclick="addFloatingPiece()">Add floating piece</button>
+                    <select id="addFloatingPiece-effect">
+                        <option value="" selected>(no effect)</option>
+                        <option value="slideUpAndFadeOut">(with slide up & fade out)</option>
+                        <option value="rotateAndScaleDown">(with rotate & scale down)</option>
+                    </select>
+                    -
+                    <button onclick="slideFloatingElement()">Slide floating piece</button>
+                    -
+                    <button onclick="slideFloatingElements()">Slide multiple pieces</button>
+                    <select id="slideFloatingElements-spacing">
+                        <option value="interval" selected>(interval)</option>
+                        <option value="sequentially">(sequentially)</option>
+                        <option value="parallel">(parallel)</option>
+                    </select>
+                </div>
+                <div>
+                    <button onclick="displayMessage()">Display message</button>
+                    -
+                    <button onclick="displayScoring()">Display scoring</button>
+                    <button onclick="attachAndDisplayScoring()">Attach and display scoring</button>
+                    -
+                    <button onclick="displayBubble()">Display bubble</button>
+                    <select id="bubble-position">
+                        <option value="top" selected>top</option>
+                        <option value="bottom">bottom</option>
+                    </select>
+                </div>
             </fieldset>
         </div>
         <div>

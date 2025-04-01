@@ -72,10 +72,34 @@ class BaseAnimationManager {
     /**
      * Get translation, rotation & scale matrix for an element, relative to the top of the page.
      */
-    public getFullMatrix(element: HTMLElement): DOMMatrix {
-        const rotationAndScaleMatrix = this.getRotationAndScaleMatrix(element);
-        const topPageOffset = this.getTopPageOffset(element);
-        return topPageOffset.multiply(rotationAndScaleMatrix);
+    public getFullMatrix(element: HTMLElement, params?: PositionSettings): DOMMatrix {
+        let fromRotationAndScaleMatrix = this.getRotationAndScaleMatrix(element, params?.includeSelfRotationAndScale ?? true);
+        if (params?.ignoreScale ?? false) {
+            fromRotationAndScaleMatrix = this.removeScaleFromMatrix(fromRotationAndScaleMatrix);
+        }
+        if (params?.ignoreRotation ?? false) {
+            fromRotationAndScaleMatrix = this.removeRotationFromMatrix(fromRotationAndScaleMatrix);
+        }
+
+        let fromElementRect = element.getBoundingClientRect();
+
+        const horizontalBase = params?.horizontalBase ?? 'center';
+        const verticalBase = params?.verticalBase ?? 'center';
+        let x = window.scrollX + fromElementRect.left;
+        if (horizontalBase === 'right') {
+            x += fromElementRect.width;
+        } else if (horizontalBase === 'center') {
+            x += fromElementRect.width / 2;
+        }
+        let y = window.scrollY + fromElementRect.top;
+        if (verticalBase === 'bottom') {
+            y += fromElementRect.height;
+        } else if (verticalBase === 'center') {
+            y += fromElementRect.height / 2;
+        }
+
+        const fromMatrix = new DOMMatrix().translateSelf(x, y).multiply(fromRotationAndScaleMatrix);
+        return fromMatrix;
     }
 
     /**
@@ -115,24 +139,6 @@ class BaseAnimationManager {
             matrix.c, matrix.d,  // Keep skew
             0, 0                 // Remove translation
         ]);
-    }
-
-    /**
-     * Get the matrix of an element, to place it at the center of a parent element.
-     */
-    public getFullMatrixFromElementCenter(parentElement: HTMLElement, ignoreScale: boolean = true, ignoreRotation: boolean = true): DOMMatrix {            
-        let fromRotationAndScaleMatrix = this.getRotationAndScaleMatrix(parentElement, true);
-        if (ignoreScale) {
-            fromRotationAndScaleMatrix = this.removeScaleFromMatrix(fromRotationAndScaleMatrix);
-        }
-        if (ignoreRotation) {
-            fromRotationAndScaleMatrix = this.removeRotationFromMatrix(fromRotationAndScaleMatrix);
-        }
-
-        let fromElementRect = parentElement.getBoundingClientRect();
-
-        const fromMatrix = new DOMMatrix().translateSelf(window.scrollX + fromElementRect.left + fromElementRect.width / 2, window.scrollY + fromElementRect.top + fromElementRect.height / 2).multiply(fromRotationAndScaleMatrix);
-        return fromMatrix;
     }
 
     /**
@@ -245,7 +251,7 @@ class BaseAnimationManager {
      * Add a wrapper around an element, and add the elment on that wrapper.
      * Needed before doing animations on the surface
      */
-    public wrapOnAnimationSurface(element: HTMLElement): HTMLElement {
+    public wrapOnAnimationSurface(element: HTMLElement, positionSettings?: PositionSettings): HTMLElement {
         // if the element is not yet in the DOM, we add it to the animation surface to be able to compute width/height
         if (!document.contains(element)) {
             this.animationSurface.appendChild(element);
@@ -255,9 +261,26 @@ class BaseAnimationManager {
         animationWrapper.appendChild(element);
         animationWrapper.classList.add('bga-animations_animation-wrapper');
         this.animationSurface.appendChild(animationWrapper);
+
+        const verticalBase = positionSettings?.verticalBase ?? 'center';
+        const horizontalBase = positionSettings?.horizontalBase ?? 'center';
+
         const wrapperBR = animationWrapper.getBoundingClientRect();
-        animationWrapper.style.left = `-${wrapperBR.width / 2}px`;
-        animationWrapper.style.top = `-${wrapperBR.height / 2}px`;
+        let left = 0;
+        let top = 0;
+        if (horizontalBase === 'right') {
+            left = wrapperBR.width;
+        } else if (horizontalBase === 'center') {
+            left = wrapperBR.width / 2;
+        }
+        if (verticalBase === 'bottom') {
+            top = wrapperBR.height;
+        } else if (verticalBase === 'center') {
+            top = wrapperBR.height / 2;
+        }
+        animationWrapper.style.left = `-${left}px`;
+
+        animationWrapper.style.top = `-${top}px`;
 
         return animationWrapper;
     }
@@ -373,9 +396,9 @@ class BaseAnimationManager {
     public startSlideInAnimation(element: HTMLElement, fromElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true, preserveScale: boolean = true): RunningAnimation | null {
         const toParent = element.parentElement;
         const toNextSibling = element.nextElementSibling;  
-        const toMatrix = this.getFullMatrix(element);      
+        const toMatrix = this.getFullMatrix(element, { ignoreScale: false, ignoreRotation: false, includeSelfRotationAndScale: false });      
         let fromMatrix = fromElement ? 
-            this.getFullMatrixFromElementCenter(fromElement, fromIgnoreScale, fromIgnoreRotation)
+            this.getFullMatrix(fromElement, { ignoreScale: fromIgnoreScale, ignoreRotation: fromIgnoreRotation })
             : toMatrix;
         if (preserveScale) {
             fromMatrix = this.applyMatrixScale(fromMatrix, toMatrix);
@@ -398,9 +421,9 @@ class BaseAnimationManager {
     public startSlideOutAnimation(element: HTMLElement, toElement?: HTMLElement, fromIgnoreScale: boolean = true, fromIgnoreRotation: boolean = true, preserveScale: boolean = true): RunningAnimation | null {
         const fromParent = element.parentElement;
         const fromNextSibling = element.nextElementSibling;  
-        const fromMatrix = this.getFullMatrix(element);      
+        const fromMatrix = this.getFullMatrix(element, { ignoreScale: false, ignoreRotation: false, includeSelfRotationAndScale: false });      
         let toMatrix = toElement ? 
-            this.getFullMatrixFromElementCenter(toElement, fromIgnoreScale, fromIgnoreRotation)
+            this.getFullMatrix(toElement, { ignoreScale: fromIgnoreScale, ignoreRotation: fromIgnoreRotation })
             : fromMatrix;
         if (preserveScale) {
             toMatrix = this.applyMatrixScale(toMatrix, fromMatrix);
@@ -422,9 +445,9 @@ class BaseAnimationManager {
     public startAttachAnimation(element: HTMLElement, toElement: HTMLElement, insertBefore?: HTMLElement): RunningAnimation | null {
         const fromParent = element.parentElement;
         const fromNextSibling = element.nextElementSibling;        
-        const fromMatrix = this.getFullMatrix(element);
+        const fromMatrix = this.getFullMatrix(element, { ignoreScale: false, ignoreRotation: false, includeSelfRotationAndScale: false });
         this.attachToElement(element, toElement, insertBefore);
-        const toMatrix = this.getFullMatrix(element);
+        const toMatrix = this.getFullMatrix(element, { ignoreScale: false, ignoreRotation: false, includeSelfRotationAndScale: false });
         const wrapper = this.wrapOnAnimationSurface(element);
 
         return <RunningAnimation>{
@@ -445,6 +468,14 @@ class BaseAnimationManager {
             // add before the filling space if it exists, else before the nextSibling
             this.attachToElement(attachAnimation.element, attachAnimation.toParent, attachAnimation.toSpaceWrapper ?? attachAnimation.toNextSibling);
         }
-        attachAnimation.wrappersToRemove?.forEach(result => result?.remove());
+        attachAnimation.wrappersToRemove?.forEach(wrapper => this.removeElement(wrapper));
+    }
+
+    public removeElement(element: HTMLElement | undefined | null) {
+        if (!element) {
+            return;
+        }
+        element.id = `removed-element-${new Date()}-${Math.random()}`;
+        element.remove();
     }
 }

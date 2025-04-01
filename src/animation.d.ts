@@ -1,3 +1,14 @@
+type HorizontalBase = 'left' | 'center' | 'right';
+type VerticalBase = 'top' | 'center' | 'bottom';
+
+interface PositionSettings {
+    includeSelfRotationAndScale?: boolean;
+    ignoreScale?: boolean;
+    ignoreRotation?: boolean;
+    horizontalBase?: HorizontalBase;
+    verticalBase?: VerticalBase;
+}
+
 /**
  * Global settings to apply as a default to all animations. Can be overriden in each animation.
  */
@@ -64,6 +75,9 @@ interface SlideAnimationSettings extends AnimationSettings {
 }
 
 interface FloatingElementAnimationSettings extends SlideAnimationSettings {
+    fromSettings?: PositionSettings;
+    toSettings?: PositionSettings;
+
     /**
      * Ignore the scale of the from and to element when doing the animation (default true).
      */

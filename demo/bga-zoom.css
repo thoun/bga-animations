@@ -1,21 +1,15 @@
 #bga-zoom-wrapper {
   position: relative;
 }
-#bga-zoom-wrapper .bga-zoom-inner {
-  transform-origin: left top;
-}
-#bga-zoom-wrapper .bga-zoom-inner[data-smooth=true] {
-  transition: transform 0.5s;
-}
 #bga-zoom-wrapper #bga-zoom-controls {
   position: absolute;
   top: 0;
 }
-#bga-zoom-wrapper #bga-zoom-controls[data-position=top-left] {
-  left: 0;
+#bga-zoom-wrapper #bga-zoom-controls[data-position=top-start] {
+  inset-inline-start: 0;
 }
-#bga-zoom-wrapper #bga-zoom-controls[data-position=top-right] {
-  right: 0;
+#bga-zoom-wrapper #bga-zoom-controls[data-position=top-end] {
+  inset-inline-end: 0;
 }
 #bga-zoom-wrapper #bga-zoom-controls button {
   border: 0;

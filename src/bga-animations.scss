@@ -22,7 +22,6 @@
 }
 
 /* Scoring */
-
 .bga-animations_floating-message {
     --color: black;
 
@@ -33,3 +32,46 @@
     text-shadow: 1px 0 1px #fff, 0 -1px 1px #fff, 0 1px 1px #fff, -1px 0 1px #fff;
     white-space: nowrap;
 }
+
+
+/* discussion bubbles */
+.bga-animations_discussion-bubble {
+    position:absolute;
+    left: 0px;
+    padding:5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    min-width: 20px; /* needed so that the direction triangle doesnt overflow */
+    color: black;
+    background:white;
+     
+    border-radius:10px;
+    font-weight: normal;
+
+    /* the triangle */
+    &::after {
+        content:"";
+        position:absolute;
+        left: calc(50% - 15px);
+        border-style:solid;
+        border-color:white transparent;
+        width:0;
+    }
+
+    &[data-vertical-base="top"] {
+        bottom: calc(100% + 10px);
+
+        &::after {
+            bottom: -10px;
+            border-width:15px 15px 0 15px; /* vary these values to change the angle of the vertex */
+        }
+    }
+    &[data-vertical-base="bottom"] {
+        top: calc(100% + 10px);
+
+        &::after {
+            top: -10px;
+            border-width: 0 15px 15px 15px; /* vary these values to change the angle of the vertex */
+        }
+    }
+  }
