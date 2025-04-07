@@ -141,7 +141,10 @@ declare class AnimationManager {
      * Fade out an object and destroy it. It call be called with a toElement, in that case a slide animation will be triggered.
      */
     fadeOutAndDestroy(element: HTMLElement, toElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
-    getFloatingElementParams(animationSettings?: FloatingElementAnimationSettings, parallelAnimations?: ParallelAnimation[]): {
+    getFloatingElementParams(animationSettings?: DisplayElementAnimationSettings, defaultAnimation?: ParallelAnimation): {
+        defaultAnimation?: boolean;
+        extraClass?: string;
+        extraClasses?: string[];
         fromSettings?: PositionSettings;
         toSettings?: PositionSettings;
         ignoreScale?: boolean;
@@ -162,16 +165,17 @@ declare class AnimationManager {
      * Add a floating element over another element.
      */
     addFloatingElement(element: HTMLElement, toElement: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
+    protected addDisplayElementAnimationSettings(element: HTMLElement, animationSettings?: DisplayElementAnimationSettings): void;
     /**
      * Add a floating message over another element.
      */
-    displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingElementAnimationSettings): Promise<void>;
+    displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: DisplayElementAnimationSettings): Promise<void>;
     /**
      * Add a floating number over another element.
      * It will be prefixed by '+' if positive, and '-' if negative.
      */
-    displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingElementAnimationSettings): Promise<void>;
-    displayBubble(toElement: HTMLElement, message: string, animationSettings?: FloatingElementAnimationSettings): Promise<void>;
+    displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: DisplayElementAnimationSettings): Promise<void>;
+    displayBubble(toElement: HTMLElement, message: string, animationSettings?: DisplayElementAnimationSettings): Promise<void>;
     /**
      * Play multiple animations a the same time.
      *

@@ -102,6 +102,23 @@ interface FloatingElementAnimationSettings extends SlideAnimationSettings {
     scale?: number;
 }
 
+interface DisplayElementAnimationSettings extends FloatingElementAnimationSettings {
+    /**
+     * If the display animation has a default animation, indicates if it should be played (default true).
+     */
+    defaultAnimation?: boolean;
+
+    /**
+     * Extra class to add to add to the animated element.
+     */
+    extraClass?: string;
+
+    /**
+     * Extra classes to add to add to the animated element.
+     */
+    extraClasses?: string[];
+}
+
 interface AnimationResult {
     animation: Animation;
     element?: HTMLElement;

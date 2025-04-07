@@ -285,7 +285,7 @@ class AnimationManager {
         await this.slideOutAndDestroy(element, toElement, finalAnimationSettings);
     }
 
-    public getFloatingElementParams(animationSettings?: FloatingElementAnimationSettings, parallelAnimations?: ParallelAnimation[]) {
+    public getFloatingElementParams(animationSettings?: DisplayElementAnimationSettings, defaultAnimation?: ParallelAnimation) {
         if (animationSettings && !animationSettings.fromSettings) {
             animationSettings.fromSettings = {
                 ignoreScale: animationSettings.ignoreScale,
@@ -304,8 +304,8 @@ class AnimationManager {
             ...animationSettings
         };
 
-        if (parallelAnimations) {
-            allAnimationSettings.parallelAnimations = [...parallelAnimations, ...(animationSettings?.parallelAnimations ?? [])]
+        if (defaultAnimation && (allAnimationSettings.defaultAnimation ?? true)) {
+            allAnimationSettings.parallelAnimations = [defaultAnimation, ...(animationSettings?.parallelAnimations ?? [])]
         }
 
         return allAnimationSettings;
@@ -352,14 +352,23 @@ class AnimationManager {
         return this.slideFloatingElement(element, null, toElement, { bump: null, ...animationSettings });
     }
 
+    protected addDisplayElementAnimationSettings(element: HTMLElement, animationSettings?: DisplayElementAnimationSettings) {
+        let extraClasses: string[] = animationSettings?.extraClasses ?? [];
+        if (animationSettings?.extraClass) {
+            extraClasses.push(...animationSettings.extraClass.split(/\s+/));
+        }
+        element.classList.add(...extraClasses);
+    }
+
     /**
      * Add a floating message over another element.
      */
-    public async displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: FloatingElementAnimationSettings) {
-        const scoreElement = document.createElement('div');
-        scoreElement.classList.add('bga-animations_floating-message');
-        scoreElement.innerText = message;
-        scoreElement.style.setProperty('--color', `#${color}`);
+    public async displayMessage(toElement: HTMLElement, message: string, color: string, animationSettings?: DisplayElementAnimationSettings) {
+        const displayElement = document.createElement('div');
+        displayElement.classList.add('bga-animations_floating-message');
+        displayElement.innerText = message;
+        displayElement.style.setProperty('--color', `#${color}`);
+        this.addDisplayElementAnimationSettings(displayElement, animationSettings);
 
         const zoomInOutAnimation = {
             keyframes: [
@@ -373,23 +382,24 @@ class AnimationManager {
         const finalAnimationSettings = this.getFloatingElementParams({
             duration: 2000,
             ...animationSettings,
-        }, [zoomInOutAnimation]);
-        await this.addFloatingElement(scoreElement, toElement, finalAnimationSettings);
+        }, zoomInOutAnimation);
+        await this.addFloatingElement(displayElement, toElement, finalAnimationSettings);
     }
 
     /**
      * Add a floating number over another element.
      * It will be prefixed by '+' if positive, and '-' if negative.
      */
-    public async displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: FloatingElementAnimationSettings) {
+    public async displayScoring(toElement: HTMLElement, score: number, color: string, animationSettings?: DisplayElementAnimationSettings) {
         const message = `${score > 0 ? '+' : ''}${score}`;
         await this.displayMessage(toElement, message, color, animationSettings);
     }
 
-    public async displayBubble(toElement: HTMLElement, message: string, animationSettings?: FloatingElementAnimationSettings) {
-        const scoreElement = document.createElement('div');
-        scoreElement.classList.add('bga-animations_discussion-bubble');
-        scoreElement.innerHTML = message;
+    public async displayBubble(toElement: HTMLElement, message: string, animationSettings?: DisplayElementAnimationSettings) {
+        const displayElement = document.createElement('div');
+        displayElement.classList.add('bga-animations_discussion-bubble');
+        displayElement.innerHTML = message;
+        this.addDisplayElementAnimationSettings(displayElement, animationSettings);
 
         const fadeInOutAnimation = {
             keyframes: [
@@ -403,7 +413,7 @@ class AnimationManager {
         const finalAnimationSettings = this.getFloatingElementParams({
             duration: 2000,
             ...animationSettings, 
-        }, [fadeInOutAnimation]);
+        }, fadeInOutAnimation);
         if (!finalAnimationSettings.toSettings.verticalBase) {
             finalAnimationSettings.toSettings.verticalBase = 'top';
         }
@@ -411,9 +421,9 @@ class AnimationManager {
             finalAnimationSettings.fromSettings.verticalBase = finalAnimationSettings.toSettings.verticalBase === 'bottom' ? 'top' : 'bottom';
         }
 
-        scoreElement.dataset.verticalBase = finalAnimationSettings.toSettings.verticalBase;
+        displayElement.dataset.verticalBase = finalAnimationSettings.toSettings.verticalBase;
 
-        await this.addFloatingElement(scoreElement, toElement, finalAnimationSettings);
+        await this.addFloatingElement(displayElement, toElement, finalAnimationSettings);
     }
 
     /**

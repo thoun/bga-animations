@@ -666,8 +666,8 @@ class AnimationManager {
             yield this.slideOutAndDestroy(element, toElement, finalAnimationSettings);
         });
     }
-    getFloatingElementParams(animationSettings, parallelAnimations) {
-        var _a;
+    getFloatingElementParams(animationSettings, defaultAnimation) {
+        var _a, _b;
         if (animationSettings && !animationSettings.fromSettings) {
             animationSettings.fromSettings = {
                 ignoreScale: animationSettings.ignoreScale,
@@ -681,8 +681,8 @@ class AnimationManager {
             };
         }
         const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
-        if (parallelAnimations) {
-            allAnimationSettings.parallelAnimations = [...parallelAnimations, ...((_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.parallelAnimations) !== null && _a !== void 0 ? _a : [])];
+        if (defaultAnimation && ((_a = allAnimationSettings.defaultAnimation) !== null && _a !== void 0 ? _a : true)) {
+            allAnimationSettings.parallelAnimations = [defaultAnimation, ...((_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.parallelAnimations) !== null && _b !== void 0 ? _b : [])];
         }
         return allAnimationSettings;
     }
@@ -724,15 +724,24 @@ class AnimationManager {
             return this.slideFloatingElement(element, null, toElement, Object.assign({ bump: null }, animationSettings));
         });
     }
+    addDisplayElementAnimationSettings(element, animationSettings) {
+        var _a;
+        let extraClasses = (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.extraClasses) !== null && _a !== void 0 ? _a : [];
+        if (animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.extraClass) {
+            extraClasses.push(...animationSettings.extraClass.split(/\s+/));
+        }
+        element.classList.add(...extraClasses);
+    }
     /**
      * Add a floating message over another element.
      */
     displayMessage(toElement, message, color, animationSettings) {
         return __awaiter(this, void 0, void 0, function* () {
-            const scoreElement = document.createElement('div');
-            scoreElement.classList.add('bga-animations_floating-message');
-            scoreElement.innerText = message;
-            scoreElement.style.setProperty('--color', `#${color}`);
+            const displayElement = document.createElement('div');
+            displayElement.classList.add('bga-animations_floating-message');
+            displayElement.innerText = message;
+            displayElement.style.setProperty('--color', `#${color}`);
+            this.addDisplayElementAnimationSettings(displayElement, animationSettings);
             const zoomInOutAnimation = {
                 keyframes: [
                     { transform: 'scale(0) rotate(360deg)', offset: 0 },
@@ -741,8 +750,8 @@ class AnimationManager {
                     { transform: 'scale(0) rotate(360deg)', offset: 1 },
                 ]
             };
-            const finalAnimationSettings = this.getFloatingElementParams(Object.assign({ duration: 2000 }, animationSettings), [zoomInOutAnimation]);
-            yield this.addFloatingElement(scoreElement, toElement, finalAnimationSettings);
+            const finalAnimationSettings = this.getFloatingElementParams(Object.assign({ duration: 2000 }, animationSettings), zoomInOutAnimation);
+            yield this.addFloatingElement(displayElement, toElement, finalAnimationSettings);
         });
     }
     /**
@@ -757,9 +766,10 @@ class AnimationManager {
     }
     displayBubble(toElement, message, animationSettings) {
         return __awaiter(this, void 0, void 0, function* () {
-            const scoreElement = document.createElement('div');
-            scoreElement.classList.add('bga-animations_discussion-bubble');
-            scoreElement.innerHTML = message;
+            const displayElement = document.createElement('div');
+            displayElement.classList.add('bga-animations_discussion-bubble');
+            displayElement.innerHTML = message;
+            this.addDisplayElementAnimationSettings(displayElement, animationSettings);
             const fadeInOutAnimation = {
                 keyframes: [
                     { opacity: 0, offset: 0 },
@@ -768,15 +778,15 @@ class AnimationManager {
                     { opacity: 0, offset: 1 },
                 ]
             };
-            const finalAnimationSettings = this.getFloatingElementParams(Object.assign({ duration: 2000 }, animationSettings), [fadeInOutAnimation]);
+            const finalAnimationSettings = this.getFloatingElementParams(Object.assign({ duration: 2000 }, animationSettings), fadeInOutAnimation);
             if (!finalAnimationSettings.toSettings.verticalBase) {
                 finalAnimationSettings.toSettings.verticalBase = 'top';
             }
             if (finalAnimationSettings.toSettings.verticalBase && !finalAnimationSettings.fromSettings.verticalBase) {
                 finalAnimationSettings.fromSettings.verticalBase = finalAnimationSettings.toSettings.verticalBase === 'bottom' ? 'top' : 'bottom';
             }
-            scoreElement.dataset.verticalBase = finalAnimationSettings.toSettings.verticalBase;
-            yield this.addFloatingElement(scoreElement, toElement, finalAnimationSettings);
+            displayElement.dataset.verticalBase = finalAnimationSettings.toSettings.verticalBase;
+            yield this.addFloatingElement(displayElement, toElement, finalAnimationSettings);
         });
     }
     /**
