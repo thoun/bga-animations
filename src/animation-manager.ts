@@ -95,7 +95,7 @@ class AnimationManager {
     /**
      * Play a list of animations then attach to an element.
      */
-    public async sequenceAnimationsAttach(element: HTMLElement, toElement: HTMLElement, animations: ((runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => Promise<RunningAnimation>)[], animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any> {
+    public async sequenceAnimationsAttach(element: HTMLElement, toElement: HTMLElement, animations: ((runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => Promise<RunningAnimation>)[], animationSettings?: SequenceAnimationsSettings | SequenceAnimationsSettings[], insertBefore?: HTMLElement): Promise<any> {
         if (!this.game.bgaAnimationsActive()) {
             this.base.attachToElement(element, toElement, insertBefore);
             return null;
@@ -108,7 +108,7 @@ class AnimationManager {
 
         for (let index = 0; index < animations.length; index++) {
             const currentAnimation = animations[index];
-            const currentAnimationSettings = Array.isArray(animationSettings) ? { ...this.animationSettings, ...animationSettings[index] } : { ...this.animationSettings, ...animationSettings };
+            const currentAnimationSettings: SequenceAnimationsSettings = Array.isArray(animationSettings) ? { ...this.animationSettings, ...animationSettings[index] } : { ...this.animationSettings, ...animationSettings };
             
             const promises: Promise<any>[] = [
                 currentAnimation(runningAnimation, currentAnimationSettings),
@@ -131,6 +131,10 @@ class AnimationManager {
             }
             
             runningAnimation = results[0];
+
+            if (currentAnimationSettings.innerPause && index < animations.length - 1) {
+                await this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, runningAnimation.fromMatrix, { duration: currentAnimationSettings.innerPause });
+            }
         }
         this.base.endRunningAnimation(runningAnimation);
     }
@@ -138,7 +142,7 @@ class AnimationManager {
     /**
      * Slide an object to the screen center then an element.
      */
-    public async slideToScreenCenterAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any> {
+    public async slideToScreenCenterAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: SequenceAnimationsSettings | SequenceAnimationsSettings[], insertBefore?: HTMLElement): Promise<any> {
         const elementBR = element.getBoundingClientRect();
         const centerScreenMatrix = new DOMMatrix().translateSelf(window.scrollX + (window.innerWidth - elementBR.width) / 2, window.scrollY + (window.innerHeight - elementBR.height) / 2);
 
@@ -162,7 +166,7 @@ class AnimationManager {
     /**
      * Slide an object over an intermediate element then attach to an element.
      */
-    public async slideToElementAndAttach(element: HTMLElement, overElement: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any> {
+    public async slideToElementAndAttach(element: HTMLElement, overElement: HTMLElement, toElement: HTMLElement, animationSettings?: SequenceAnimationsSettings | SequenceAnimationsSettings[], insertBefore?: HTMLElement): Promise<any> {
         const overElementMatrix = this.base.getFullMatrix(overElement, { ignoreScale: true, ignoreRotation: true });
 
         const toCenterScreen = async (runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => {

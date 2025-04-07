@@ -20,16 +20,6 @@ class BaseAnimationManager {
         document.body.appendChild(this.animationSurface);
     }
     /**
-     * Get the translate X & Y for the element, from the top of the page.
-     */
-    getTopPageOffset(element) {
-        let elementRect = element.getBoundingClientRect();
-        // Compute position of the element center from top-left of the page, ignoring rotation/scale changing the BR width/height
-        let x = elementRect.left + elementRect.width / 2 + window.scrollX;
-        let y = elementRect.top + elementRect.height / 2 + window.scrollY;
-        return new DOMMatrix().translateSelf(x, y);
-    }
-    /**
      * Get rotation & scale matrix for an element, relative to the parent.
      */
     getRotationAndScaleMatrixForElement(element) {
@@ -420,6 +410,22 @@ class BaseAnimationManager {
         element.id = `removed-element-${new Date()}-${Math.random()}`;
         element.remove();
     }
+    /**
+     * Return a Promise that resolves at the end of a given number of ms.
+     *
+     * @param {number} delay the time to wait, in milliseconds
+     * @returns a promise when the timer ends
+     */
+    wait(delay) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (delay > 0) {
+                yield new Promise(resolve => setTimeout(resolve, delay));
+            }
+            else {
+                yield Promise.resolve();
+            }
+        });
+    }
 }
 class AnimationManager {
     /**
@@ -531,6 +537,9 @@ class AnimationManager {
                     runningAnimation.wrappersToRemove.push(...results.map(result => result === null || result === void 0 ? void 0 : result.animationWrapper));
                 }
                 runningAnimation = results[0];
+                if (currentAnimationSettings.innerPause && index < animations.length - 1) {
+                    yield this.base.animateOnAnimationSurface(runningAnimation.wrapper, runningAnimation.fromMatrix, runningAnimation.fromMatrix, { duration: currentAnimationSettings.innerPause });
+                }
             }
             this.base.endRunningAnimation(runningAnimation);
         });

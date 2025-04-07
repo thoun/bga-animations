@@ -15,19 +15,6 @@ class BaseAnimationManager {
     }
 
     /**
-     * Get the translate X & Y for the element, from the top of the page.
-     */
-    private getTopPageOffset(element: HTMLElement): DOMMatrix {
-        let elementRect = element.getBoundingClientRect();
-    
-        // Compute position of the element center from top-left of the page, ignoring rotation/scale changing the BR width/height
-        let x = elementRect.left + elementRect.width / 2 + window.scrollX;
-        let y = elementRect.top + elementRect.height / 2 + window.scrollY;
-    
-        return new DOMMatrix().translateSelf(x, y);
-    }
-
-    /**
      * Get rotation & scale matrix for an element, relative to the parent.
      */
     private getRotationAndScaleMatrixForElement(element: HTMLElement): DOMMatrix {
@@ -477,5 +464,19 @@ class BaseAnimationManager {
         }
         element.id = `removed-element-${new Date()}-${Math.random()}`;
         element.remove();
+    }
+
+    /**
+     * Return a Promise that resolves at the end of a given number of ms.
+     * 
+     * @param {number} delay the time to wait, in milliseconds
+     * @returns a promise when the timer ends
+     */
+    public async wait(delay: number) {
+        if (delay > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+            await Promise.resolve();
+        }
     }
 }

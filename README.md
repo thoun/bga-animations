@@ -8,10 +8,7 @@
 The AnimationManager will store the global settings and offer various types of animations.
 The BaseAnimationManager (animationManager.base) has smaller functions, allowing to build custom animations.
 
-# Integration
-## On standard BGA project
-Copy bga-animations.js file to the `modules` directory.  
-Then you can include the module on your game :
+# Integration on a BGA project
 
 JS file:
 ```js

@@ -6,10 +6,6 @@ declare class BaseAnimationManager {
      */
     private createAnimationSurface;
     /**
-     * Get the translate X & Y for the element, from the top of the page.
-     */
-    private getTopPageOffset;
-    /**
      * Get rotation & scale matrix for an element, relative to the parent.
      */
     private getRotationAndScaleMatrixForElement;
@@ -92,6 +88,13 @@ declare class BaseAnimationManager {
     startAttachAnimation(element: HTMLElement, toElement: HTMLElement, insertBefore?: HTMLElement): RunningAnimation | null;
     endRunningAnimation(attachAnimation: RunningAnimation): void;
     removeElement(element: HTMLElement | undefined | null): void;
+    /**
+     * Return a Promise that resolves at the end of a given number of ms.
+     *
+     * @param {number} delay the time to wait, in milliseconds
+     * @returns a promise when the timer ends
+     */
+    wait(delay: number): Promise<void>;
 }
 declare class AnimationManager {
     game: Game;
@@ -113,15 +116,15 @@ declare class AnimationManager {
     /**
      * Play a list of animations then attach to an element.
      */
-    sequenceAnimationsAttach(element: HTMLElement, toElement: HTMLElement, animations: ((runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => Promise<RunningAnimation>)[], animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any>;
+    sequenceAnimationsAttach(element: HTMLElement, toElement: HTMLElement, animations: ((runningAnimation: RunningAnimation, animationSettings?: AnimationSettings) => Promise<RunningAnimation>)[], animationSettings?: SequenceAnimationsSettings | SequenceAnimationsSettings[], insertBefore?: HTMLElement): Promise<any>;
     /**
      * Slide an object to the screen center then an element.
      */
-    slideToScreenCenterAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any>;
+    slideToScreenCenterAndAttach(element: HTMLElement, toElement: HTMLElement, animationSettings?: SequenceAnimationsSettings | SequenceAnimationsSettings[], insertBefore?: HTMLElement): Promise<any>;
     /**
      * Slide an object over an intermediate element then attach to an element.
      */
-    slideToElementAndAttach(element: HTMLElement, overElement: HTMLElement, toElement: HTMLElement, animationSettings?: AnimationSettings | AnimationSettings[], insertBefore?: HTMLElement): Promise<any>;
+    slideToElementAndAttach(element: HTMLElement, overElement: HTMLElement, toElement: HTMLElement, animationSettings?: SequenceAnimationsSettings | SequenceAnimationsSettings[], insertBefore?: HTMLElement): Promise<any>;
     /**
      * Slide an object in. The object must be attached to the destination before.
      */

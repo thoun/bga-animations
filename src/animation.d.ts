@@ -74,6 +74,14 @@ interface SlideAnimationSettings extends AnimationSettings {
     bump?: number;
 }
 
+interface SequenceAnimationsSettings extends AnimationSettings {
+    /**
+     * A pause between the animations, in ms (default undefined/0).
+     * If set in an inner animation settings, will apply after the animation, except if the animation is the last one.
+     */
+    innerPause?: number;
+}
+
 interface FloatingElementAnimationSettings extends SlideAnimationSettings {
     fromSettings?: PositionSettings;
     toSettings?: PositionSettings;

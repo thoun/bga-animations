@@ -30,20 +30,28 @@
         <div class="control-blocks">
             <fieldset>
                 <legend>Attach</legend>
-                <button onclick="slideAll()">Slide to the other box</button>
-                <select id="slideAll-effect">
-                    <option value="" selected>(no effect)</option>
-                    <option value="blink">(with blink effect)</option>
-                    <option value="rotateAndBump">(with rotate & bump)</option>
-                </select>
-                -
-                <button onclick="slideAllScreenCenter()">Slide to screen center then the other box</button>
-                -
-                <button onclick="slideAllVoid()">Slide to the void then the other box</button>
-                -
-                <button onclick="slideAllCustomFunction()">Slide to each corner screen then the other box (custom function)</button>
-                -
-                <button onclick="swap()">Swap</button>
+                <div>
+                    <button onclick="slideAll()">Slide to the other box</button>
+                    <select id="slideAll-effect">
+                        <option value="" selected>(no effect)</option>
+                        <option value="blink">(with blink effect)</option>
+                        <option value="rotateAndBump">(with rotate & bump)</option>
+                    </select>
+                    -
+                    <button onclick="swap()">Swap</button>
+                </div>
+                <div>
+                    <button onclick="slideAllScreenCenter()">Slide to screen center then the other box</button>
+                    <button onclick="slideAllVoid()">Slide to the void then the other box</button>
+                    <button onclick="slideAllCustomFunction()">Slide to each corner screen then the other box (custom function)</button>
+                    <select id="innerPause" onchange="animationSettings.innerPause = Number(this.value);">
+                        <option value="0" selected>(no inner pause)</option>
+                        <option value="100">(100ms inner pause)</option>
+                        <option value="500">(500ms inner pause)</option>
+                        <option value="1000">(1s inner pause)</option>
+                    </select>
+                    
+                </div>
             </fieldset>
             <fieldset>
                 <legend>Slide / fade</legend>
