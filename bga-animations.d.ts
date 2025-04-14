@@ -97,14 +97,13 @@ declare class BaseAnimationManager {
     wait(delay: number): Promise<void>;
 }
 declare class AnimationManager {
-    game: Game;
     base: BaseAnimationManager;
     private animationSettings;
     /**
-     * @param game the BGA game class, usually it will be `this`
      * @param animationSettings: a `AnimationManagerSettings` object
      */
-    constructor(game: Game, animationSettings?: AnimationManagerSettings);
+    constructor(animationSettings?: AnimationManagerSettings);
+    animationsActive(): boolean;
     /**
      * Slide an object to an element.
      */
@@ -129,6 +128,13 @@ declare class AnimationManager {
      * Slide an object in. The object must be attached to the destination before.
      */
     slideIn(element: HTMLElement, fromElement?: HTMLElement, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
+    /**
+     * Slide an object in. The object must be attached to the destination before.
+     */
+    slideInFromDelta(element: HTMLElement, fromDelta: {
+        x: number;
+        y: number;
+    }, animationSettings?: FloatingElementAnimationSettings): Promise<any>;
     /**
      * Fade an object in. The object must be attached to the destination before.
      */
@@ -156,6 +162,7 @@ declare class AnimationManager {
         duration?: number;
         easing?: string;
         fillingSpaces?: "all" | "none" | "from" | "to";
+        animationsActive?: boolean | (() => boolean);
     };
     /**
      * Add a floating element over another element.

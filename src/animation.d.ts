@@ -27,6 +27,11 @@ interface AnimationManagerSettings {
      * Add shrinking/growing filling spaces where the element is removed/added to animate the size of the container div. Default 'all'.
      */
     fillingSpaces?: 'all' | 'none' | 'from' | 'to';
+
+    /**
+     * A function returning a boolean, or a boolean, to know if animations are active.
+     */
+    animationsActive?: (() => boolean) | boolean;
 }
 
 /**

@@ -20,14 +20,8 @@ const game = {
     instantaneousMode: false,
 
     bgaAnimationsActive: function() {
+        console.warn(this);
         return document.visibilityState !== 'hidden' && !this.instantaneousMode;
-    },
-    wait: function(delay) {
-        if (delay > 0 && this.bgaAnimationsActive()) {
-            return new Promise(resolve => setTimeout(resolve, delay));
-        } else {
-            return Promise.resolve();
-        }
     },
 };
 
@@ -148,7 +142,9 @@ function initManager() {
         localStorageZoomKey: 'bga-animations-demo',
     });
 
-    animationManager = new AnimationManager(game);
+    animationManager = new AnimationManager({
+        animationsActive: () => game.bgaAnimationsActive(),
+    });
 
     lines.forEach((line, i) => {
         const mainDiv = document.createElement('div');

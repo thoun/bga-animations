@@ -8,8 +8,10 @@ loadBgaGameLib('bga-animations', '0.x');
 
     constructor: function() {
 
-        // create the animation manager
-        this.animationManager = new AnimationManager(this);
+        // create the animation manager, and bind it to the `game.bgaAnimationsActive()` function
+        this.animationManager = new AnimationManager({
+            animationsActive: () => this.bgaAnimationsActive(),
+        });
 
         // ...
     },

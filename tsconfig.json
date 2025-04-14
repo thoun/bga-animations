@@ -9,7 +9,6 @@
       "declaration": true,
     },
     "files": [
-      "src/framework.d.ts",
       "src/animation.d.ts",
       "src/base-animation-manager.ts",
       "src/animation-manager.ts"

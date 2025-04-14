@@ -429,19 +429,19 @@ class BaseAnimationManager {
 }
 class AnimationManager {
     /**
-     * @param game the BGA game class, usually it will be `this`
      * @param animationSettings: a `AnimationManagerSettings` object
      */
-    constructor(game, animationSettings) {
-        this.game = game;
-        //private runningAnimations: Animation[] = [];
+    constructor(animationSettings) {
         this.base = new BaseAnimationManager();
-        if (!game) {
-            throw new Error('You must set your game as the first parameter of AnimationManager');
+        this.animationSettings = Object.assign({ duration: 500, animationsActive: true }, animationSettings);
+    }
+    animationsActive() {
+        if (typeof this.animationSettings.animationsActive === 'function') {
+            return this.animationSettings.animationsActive();
         }
-        // if the player comes from or to hidden tab, no need to finish animation
-        //document.addEventListener('visibilitychange', () => this.runningAnimations.forEach(runningAnimation => runningAnimation?.finish()));
-        this.animationSettings = Object.assign({ duration: 500 }, animationSettings);
+        else {
+            return this.animationSettings.animationsActive;
+        }
     }
     /**
      * Slide an object to an element.
@@ -449,7 +449,7 @@ class AnimationManager {
     slideAndAttach(element, toElement, animationSettings, insertBefore) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 this.base.attachToElement(element, toElement, insertBefore);
                 return null;
             }
@@ -481,7 +481,7 @@ class AnimationManager {
             }
             const parents = elements.map(element => element.parentElement);
             const nextSiblings = elements.map(element => element.nextElementSibling);
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 elements.forEach((element, index) => this.base.attachToElement(element, parents[1 - index], nextSiblings[1 - index]));
                 return;
             }
@@ -508,7 +508,7 @@ class AnimationManager {
     sequenceAnimationsAttach(element, toElement, animations, animationSettings, insertBefore) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 this.base.attachToElement(element, toElement, insertBefore);
                 return null;
             }
@@ -593,7 +593,7 @@ class AnimationManager {
     slideIn(element, fromElement, animationSettings) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 return;
             }
             const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
@@ -613,12 +613,38 @@ class AnimationManager {
         });
     }
     /**
+     * Slide an object in. The object must be attached to the destination before.
+     */
+    slideInFromDelta(element, fromDelta, animationSettings) {
+        var _a, _b, _c;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.animationsActive()) {
+                return;
+            }
+            const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
+            const runningAnimation = this.base.startSlideInAnimation(element, null, (_a = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreScale) !== null && _a !== void 0 ? _a : true, (_b = animationSettings === null || animationSettings === void 0 ? void 0 : animationSettings.ignoreRotation) !== null && _b !== void 0 ? _b : true, (_c = allAnimationSettings.preserveScale) !== null && _c !== void 0 ? _c : true);
+            const { toParent, toNextSibling, wrapper, toMatrix } = runningAnimation;
+            const fromMatrix = runningAnimation.fromMatrix.translate(fromDelta.x, fromDelta.y);
+            const promises = [
+                this.base.addAnimatedSpaceIfNecessary(element, toParent, 'grow', allAnimationSettings, toNextSibling),
+                this.base.animateOnAnimationSurface(wrapper, fromMatrix, toMatrix, Object.assign({ easing: 'ease-out' }, allAnimationSettings)),
+            ];
+            yield Promise.all(promises)
+                .then(results => {
+                var _a;
+                runningAnimation.toSpaceWrapper = (_a = results[0]) === null || _a === void 0 ? void 0 : _a.animationWrapper;
+                runningAnimation.wrappersToRemove.push(...results.map(result => result === null || result === void 0 ? void 0 : result.animationWrapper));
+                this.base.endRunningAnimation(runningAnimation);
+            });
+        });
+    }
+    /**
      * Fade an object in. The object must be attached to the destination before.
      */
     fadeIn(element, fromElement, animationSettings) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 return;
             }
             const allAnimationSettings = Object.assign(Object.assign({}, this.animationSettings), animationSettings);
@@ -632,7 +658,7 @@ class AnimationManager {
     slideOutAndDestroy(element, toElement, animationSettings) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 this.base.removeElement(element);
                 return;
             }
@@ -657,7 +683,7 @@ class AnimationManager {
     fadeOutAndDestroy(element, toElement, animationSettings) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 this.base.removeElement(element);
                 return;
             }
@@ -692,7 +718,7 @@ class AnimationManager {
     slideFloatingElement(element, fromElement, toElement, animationSettings) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.game.bgaAnimationsActive()) {
+            if (!this.animationsActive()) {
                 return;
             }
             const allAnimationSettings = this.getFloatingElementParams(animationSettings);
