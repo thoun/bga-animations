@@ -862,3 +862,6 @@ class AnimationManager {
         });
     }
 }
+const BgaAnimations = {
+    Manager: AnimationManager
+};

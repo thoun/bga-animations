@@ -20,7 +20,6 @@ const game = {
     instantaneousMode: false,
 
     bgaAnimationsActive: function() {
-        console.warn(this);
         return document.visibilityState !== 'hidden' && !this.instantaneousMode;
     },
 };
@@ -142,7 +141,7 @@ function initManager() {
         localStorageZoomKey: 'bga-animations-demo',
     });
 
-    animationManager = new AnimationManager({
+    animationManager = new BgaAnimations.Manager({
         animationsActive: () => game.bgaAnimationsActive(),
     });
 

@@ -11,6 +11,7 @@
     "files": [
       "src/animation.d.ts",
       "src/base-animation-manager.ts",
-      "src/animation-manager.ts"
+      "src/animation-manager.ts",
+      "src/index.ts"
     ]
 }

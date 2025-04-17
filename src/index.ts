@@ -1,0 +1,3 @@
+const BgaAnimations = {
+    Manager: AnimationManager
+};
