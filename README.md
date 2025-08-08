@@ -1,3 +1,6 @@
+# THIS LIB IS DEPRECATED!
+It's replaced by [bga-animations](https://en.doc.boardgamearena.com/BgaAnimations)
+
 # Links
 [Documentation](https://thoun.github.io/bga-animations/docs/index.html)
 
